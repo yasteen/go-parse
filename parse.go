@@ -1,22 +1,28 @@
-package main
+package parse
 
 // Returns a string with the next token.
-func getNextTokenString(equation string, index int) (tokenString string, nextIndex int) {
+func getNextTokenString(expression string, index int) (tokenString string, nextIndex int) {
 	tokenString = ""
-	for ; index < len(equation); index++ {
-		c := string(equation[index])
+	for ; index < len(expression); index++ {
+		c := string(expression[index])
 		if c == " " {
-			continue
+			if tokenString == "" {
+				continue
+			}
+			for index < len(expression) && c == " " {
+				index++
+			}
+			break
 		} else if c == TokenToString(RParen) || c == TokenToString(LParen) {
 			if tokenString == "" {
 				tokenString = c
+				index++
 			}
-			index++
 			break
 		}
 		tokenString += c
 	}
-	return tokenString, nextIndex
+	return tokenString, index
 }
 
 func Parse(equation string, variables map[string]float64) {
