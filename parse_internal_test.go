@@ -1,6 +1,8 @@
 package parse
 
 import (
+	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -20,12 +22,17 @@ func testExpressionToTokens(input string, expected []string, t *testing.T) {
 }
 
 func testIsValidExpressionHelper(input []string, expected bool, t *testing.T) {
-	if isValidExpression(input) != expected {
+	if isValid, i := isValidExpression(input); isValid != expected {
 		str := ""
 		for _, s := range input {
 			str += s
 		}
-		t.Errorf("Test isValidExpression failed for %s.", str)
+		errorString := "Test isValidExpression failed:\n" + str
+		errorString += ", expected:" + strconv.FormatBool(expected) + "\n"
+		if expected {
+			errorString += strings.Repeat(" ", i) + "^"
+		}
+		t.Error(errorString)
 	}
 }
 

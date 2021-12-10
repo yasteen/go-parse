@@ -1,5 +1,7 @@
 package parse
 
+import "strings"
+
 // Returns a string with the next token.
 func getNextTokenString(expression string, index int) (tokenString string, nextIndex int) {
 	tokenString = ""
@@ -25,17 +27,19 @@ func getNextTokenString(expression string, index int) (tokenString string, nextI
 	return tokenString, index
 }
 
-func isValidExpression(tokens []string) bool {
+func isValidExpression(tokens []string) (bool, int) {
+	currentCharLength := 0
 	if len(tokens) == 0 {
-		return true
+		return true, currentCharLength
 	}
 	prevToken, prevTokenType := StringToToken(tokens[0])
 	if len(tokens) == 1 {
-		return prevTokenType == Value
+		return prevTokenType == Value, currentCharLength
 	}
 	if prevTokenType == Operator || prevToken == RParen {
-		return false
+		return false, currentCharLength
 	}
+	currentCharLength += len(tokens[0])
 
 	for i := 1; i < len(tokens); i++ {
 		token, tokenType := StringToToken(tokens[i])
@@ -44,20 +48,37 @@ func isValidExpression(tokens []string) bool {
 		// Whether the current token can take place after an endable previous token
 		currFollows := tokenType == Operator || token == RParen
 		if (prevIsEndable && !currFollows) || (!prevIsEndable && currFollows) {
-			return false
+			return false, currentCharLength
 		}
+
+		currentCharLength += len(tokens[i])
+
 		prevToken = token
 		prevTokenType = tokenType
 	}
 
-	return prevTokenType == Value || prevToken == RParen
+	validEnd := prevTokenType == Value || prevToken == RParen
+	if !validEnd {
+		currentCharLength -= len(tokens[len(tokens)-1])
+	}
+
+	return validEnd, currentCharLength
 }
 
-func Parse(equation string, variables map[string]float64) {
+func equationToTokens(expression string) []string {
 	tokens := []string{}
-	for i := 0; i < len(equation); {
-		token, nextIndex := getNextTokenString(equation, i)
+	for i := 0; i < len(expression); {
+		token, nextIndex := getNextTokenString(expression, i)
 		tokens = append(tokens, token)
 		i = nextIndex
 	}
+	return tokens
+}
+
+func Parse(expression string, variables map[string]float64) {
+	tokens := equationToTokens(expression)
+	if isValid, i := isValidExpression(tokens); !isValid {
+		panic("Expression is not valid\n" + expression + strings.Repeat(" ", i) + "^")
+	}
+
 }
