@@ -8,21 +8,9 @@ import (
 	"github.com/yasteen/go-parse/types"
 )
 
-type Interval struct {
-	Start interface{}
-	End   interface{}
-	Step  interface{}
-	// Return next value in the interval. Terminates if nil.
-	next func(cur interface{}, step interface{}, end interface{}) interface{}
-}
-
-func (i *Interval) Next(current interface{}) interface{} {
-	return i.next(current, i.Step, i.End)
-}
-
 // For now, assume there's only one variable
 // TODO: Finish implementation for any number of variables, and rethink output type.
-func Evaluate(expression parse.ParsedExpression, domain Interval, m *types.MathGroup) []interface{} {
+func Evaluate(expression parse.ParsedExpression, domain types.Interval, m *types.MathGroup) []interface{} {
 	result := []interface{}{}
 	for current := domain.Start; current != nil; current = domain.Next(current) {
 		result = append(result, evaluateOnce(expression, current, m))
