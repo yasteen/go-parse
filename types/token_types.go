@@ -1,10 +1,5 @@
 package types
 
-import (
-	"fmt"
-	"unicode"
-)
-
 // keywords include Operators and SingleFunctions
 type Keyword int
 
@@ -72,8 +67,12 @@ func (m *MathGroup) KeywordToString(keyword Keyword) (s string) {
 	}
 	return ""
 }
+func (m *MathGroup) ApplyKeyword(keyword Keyword, args ...interface{}) interface{} {
+	return m.keywordMap[keyword].Apply(args)
+}
 
-// Returns TokenType for given string. Keyword is added if applicable
+// Returns TokenType for given string. Keyword is added if applicable.
+// Note: If nothing is matched, the default type returned is Variable.
 func (m *MathGroup) StringToTokenType(s string) (TokenType, Keyword) {
 
 	if s == "(" {
@@ -89,20 +88,10 @@ func (m *MathGroup) StringToTokenType(s string) (TokenType, Keyword) {
 		return keywordData.TokenType, keyword
 	}
 
-	// Is number
+	// Is a valid value
 	if _, isValue := m.getValue(s); isValue {
 		return Value, 0
 	}
 
-	// Is variable
-	var first rune
-	for _, r := range s {
-		first = r
-		break
-	}
-	if len(s) == 1 && unicode.IsLetter(first) {
-		return Variable, 0
-	}
-
-	panic(fmt.Sprintf("Invalid token '%s' not recognized.", s))
+	return Variable, 0
 }

@@ -75,12 +75,12 @@ func isValidExpression(tokens []string, m *types.MathGroup) (bool, int) {
 	return validEnd, currentCharLength
 }
 
-func verifyValidVariables(tokens []string, variables map[string]struct{}, m *types.MathGroup) {
+func assertVariableTokensAreValid(tokens []string, variableName string, m *types.MathGroup) {
 	for _, t := range tokens {
 		tokenType, _ := m.StringToTokenType(t)
 		if tokenType == types.Variable {
-			if _, ok := variables[t]; !ok {
-				panic("Variable " + t + " is not recognized.")
+			if t != variableName {
+				panic("Token " + t + " is not recognized.")
 			}
 		}
 	}
@@ -149,11 +149,11 @@ func toPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 	return output
 }
 
-func Parse(expression string, variables map[string]struct{}, m *types.MathGroup) ParsedExpression {
+func Parse(expression string, variableName string, m *types.MathGroup) ParsedExpression {
 	tokens := parseExpression(expression, m)
+	assertVariableTokensAreValid(tokens, variableName, m)
 	if isValid, i := isValidExpression(tokens, m); !isValid {
 		panic("Expression is not valid\n" + expression + strings.Repeat(" ", i) + "^")
 	}
-	verifyValidVariables(tokens, variables, m)
 	return toPostfix(tokens, m)
 }
