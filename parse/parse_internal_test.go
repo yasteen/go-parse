@@ -4,13 +4,15 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/yasteen/go-parse/types/mathgroups/real"
 )
 
 func testGetNextTokenStringHelper(input string, expected []string, t *testing.T) {
 	curStringIndex := 0
 	for i := 0; i < len(input); {
 		var tokenString string
-		tokenString, i = getNextTokenString(input, i)
+		tokenString, i = getNextTokenString(input, i, real.Real)
 		if curStringIndex >= len(expected) {
 			t.Errorf("Test for '%s' produced too many tokens.", input)
 		}
@@ -26,7 +28,7 @@ func TestGetNextTokenWithString(t *testing.T) {
 }
 
 func testIsValidExpressionHelper(input []string, expected bool, t *testing.T) {
-	if isValid, i := isValidExpression(input); isValid != expected {
+	if isValid, i := isValidExpression(input, real.Real); isValid != expected {
 		str := ""
 		for _, s := range input {
 			str += s
@@ -58,7 +60,7 @@ func testToPostfixHelper(input []string, expected []string, unmatchedParen bool,
 	defer func() {
 		recover()
 	}()
-	output := toPostfix(input)
+	output := toPostfix(input, real.Real)
 
 	if unmatchedParen {
 		// Should not reach here if we expect a panic

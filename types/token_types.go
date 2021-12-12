@@ -1,125 +1,97 @@
 package types
 
-import (
-	"fmt"
-	"strconv"
-	"unicode"
-)
+// keywords include Operators and SingleFunctions
+type Keyword int
 
 type TokenType int
 
 const (
-	Value          TokenType = iota // A numerical value
-	Paren                           // A left or right parenthesis
-	Operator                        // A math operator
-	SingleFunction                  // A one-parameter function
-)
-
-type Token int
-
-const (
-	Number Token = iota
-	Variable
-	Add
-	Subtract
-	Multiply
-	Divide
-	Power
-	Sin
-	Cos
-	Tan
-	Log
-	Exp
+	Value    TokenType = iota // A literal value
+	Variable                  // A variable acting as a placeholder for a literal
 	LParen
 	RParen
+	Operator       // A math operator
+	SingleFunction // A one-parameter function
 )
 
-type _token struct {
-	_symbol string
-	_type   TokenType
+// Data relating to a Keyword.
+// TokenType == Operator: Expect 2 arguments to Apply
+// TokenType == SingleFunction: Expect 1 argument to Apply
+type KeywordData struct {
+	Symbol    string
+	TokenType TokenType
+	Apply     func(...interface{}) interface{}
 }
 
-var _tokenMap = map[Token]_token{
-	Number:   {"", Value},
-	Variable: {"", Value},
-	Add:      {"+", Operator},
-	Subtract: {"-", Operator},
-	Multiply: {"*", Operator},
-	Divide:   {"/", Operator},
-	Power:    {"^", Operator},
-	Sin:      {"sin", SingleFunction},
-	Cos:      {"cos", SingleFunction},
-	Tan:      {"tan", SingleFunction},
-	Log:      {"log", SingleFunction},
-	Exp:      {"exp", SingleFunction},
-	LParen:   {"(", Paren},
-	RParen:   {")", Paren},
+// Data structure representing a mathematical system.
+type MathGroup struct {
+	keywordMap         map[Keyword]KeywordData
+	keywordStringMap   map[string]Keyword
+	operatorPrecedence map[Keyword]int // For operators
+	getValue           func(string) (interface{}, bool)
 }
 
-// High number <=> High precedence
-var _operatorPrecedence = map[Token]int{
-	Add:      1,
-	Subtract: 1,
-	Multiply: 2,
-	Divide:   2,
-	Power:    3,
-	Sin:      4,
-	Cos:      4,
-	Tan:      4,
-	Log:      4,
-	Exp:      4,
+func New() *MathGroup {
+	return &MathGroup{
+		keywordMap:         map[Keyword]KeywordData{},
+		keywordStringMap:   map[string]Keyword{},
+		operatorPrecedence: map[Keyword]int{},
+		getValue: func(s string) (interface{}, bool) {
+			return 0, false
+		},
+	}
 }
 
-func PushCurrentOp(previous Token, current Token) bool {
-	return _operatorPrecedence[current] > _operatorPrecedence[previous]
+func NewMathGroup(
+	keywordMap map[Keyword]KeywordData,
+	keywordStringMap map[string]Keyword,
+	operatorPrecedence map[Keyword]int,
+	getValue func(string) (interface{}, bool),
+) *MathGroup {
+	return &MathGroup{
+		keywordMap:         keywordMap,
+		keywordStringMap:   keywordStringMap,
+		operatorPrecedence: operatorPrecedence,
+		getValue:           getValue,
+	}
 }
 
-// Missing Value token types because they are unknown
-var _stringToToken = map[string]Token{
-	"+":   Add,
-	"-":   Subtract,
-	"*":   Multiply,
-	"/":   Divide,
-	"^":   Power,
-	"sin": Sin,
-	"cos": Cos,
-	"tan": Tan,
-	"log": Log,
-	"exp": Exp,
-	"(":   LParen,
-	")":   RParen,
+// Operation precedence helper function for conversion from infix to postfix notation
+func (m *MathGroup) PushCurrentOp(prev Keyword, prevType TokenType, current Keyword) bool {
+	return prevType != SingleFunction && m.operatorPrecedence[current] > m.operatorPrecedence[prev]
 }
 
-func GetTokenType(token Token) TokenType {
-	return _tokenMap[token]._type
+func (m *MathGroup) KeywordToString(keyword Keyword) (s string) {
+	if keywordData, exists := m.keywordMap[keyword]; exists {
+		return keywordData.Symbol
+	}
+	return ""
+}
+func (m *MathGroup) ApplyKeyword(keyword Keyword, args ...interface{}) interface{} {
+	return m.keywordMap[keyword].Apply(args)
 }
 
-func TokenToString(token Token) (s string) {
-	return _tokenMap[token]._symbol
-}
+// Returns TokenType for given string. Keyword is added if applicable.
+// Note: If nothing is matched, the default type returned is Variable.
+func (m *MathGroup) StringToTokenType(s string) (TokenType, Keyword) {
 
-func StringToToken(s string) (token Token, t TokenType) {
-	token, ok := _stringToToken[s]
-
-	// Is predefined token
-	if ok {
-		return token, _tokenMap[token]._type
+	if s == "(" {
+		return LParen, 0
+	}
+	if s == ")" {
+		return RParen, 0
 	}
 
-	// Is number
-	if _, err := strconv.Atoi(s); err == nil {
-		return Number, Value
+	keyword, ok := m.keywordStringMap[s]
+	keywordData, ok2 := m.keywordMap[keyword]
+	if ok && ok2 {
+		return keywordData.TokenType, keyword
 	}
 
-	// Is variable
-	var first rune
-	for _, r := range s {
-		first = r
-		break
-	}
-	if len(s) == 1 && unicode.IsLetter(first) {
-		return Variable, Value
+	// Is a valid value
+	if _, isValue := m.getValue(s); isValue {
+		return Value, 0
 	}
 
-	panic(fmt.Sprintf("Invalid token '%s' not recognized.", s))
+	return Variable, 0
 }
