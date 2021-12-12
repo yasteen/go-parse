@@ -24,7 +24,7 @@ func getNextTokenString(expression string, index int, m *types.MathGroup) (token
 			}
 			break
 		} else {
-			tokenType, _ := m.StringToToken(c)
+			tokenType, _ := m.StringToTokenType(c)
 			if tokenType == types.RParen || tokenType == types.LParen {
 				if tokenString == "" {
 					tokenString = c
@@ -43,7 +43,7 @@ func isValidExpression(tokens []string, m *types.MathGroup) (bool, int) {
 	if len(tokens) == 0 {
 		return true, currentCharLength
 	}
-	prevTokenType, _ := m.StringToToken(tokens[0])
+	prevTokenType, _ := m.StringToTokenType(tokens[0])
 	if len(tokens) == 1 {
 		return prevTokenType == types.Value || prevTokenType == types.Variable, currentCharLength
 	}
@@ -53,7 +53,7 @@ func isValidExpression(tokens []string, m *types.MathGroup) (bool, int) {
 	currentCharLength += len(tokens[0])
 
 	for i := 1; i < len(tokens); i++ {
-		tokenType, _ := m.StringToToken(tokens[i])
+		tokenType, _ := m.StringToTokenType(tokens[i])
 		// Whether the previous token could be the end of an expression
 		prevIsEndable := prevTokenType == types.Value || prevTokenType == types.Variable || prevTokenType == types.RParen
 		// Whether the current token can take place after an endable previous token
@@ -77,7 +77,7 @@ func isValidExpression(tokens []string, m *types.MathGroup) (bool, int) {
 
 func verifyValidVariables(tokens []string, variables map[string]struct{}, m *types.MathGroup) {
 	for _, t := range tokens {
-		tokenType, _ := m.StringToToken(t)
+		tokenType, _ := m.StringToTokenType(t)
 		if tokenType == types.Variable {
 			if _, ok := variables[t]; !ok {
 				panic("Variable " + t + " is not recognized.")
@@ -102,7 +102,7 @@ func toPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 	operations := stack.New()
 
 	for _, t := range tokens {
-		tokenType, token := m.StringToToken(t)
+		tokenType, token := m.StringToTokenType(t)
 		switch tokenType {
 		case types.Value:
 			fallthrough
@@ -112,11 +112,11 @@ func toPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 			operations.Push(t)
 		case types.Operator:
 			for operations.Size() > 0 {
-				prevType, prevKeyWord := m.StringToToken(operations.Top().(string))
+				prevType, prevKeyWord := m.StringToTokenType(operations.Top().(string))
 				if prevType == types.LParen || m.PushCurrentOp(prevKeyWord, prevType, token) {
 					break
 				}
-				output = append(output, m.TokenToString(operations.Pop().(types.Keyword)))
+				output = append(output, m.KeywordToString(operations.Pop().(types.Keyword)))
 			}
 			operations.Push(t)
 		case types.LParen:
@@ -125,7 +125,7 @@ func toPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 			foundMatchingParen := false
 			for operations.Size() > 0 {
 				prevTokenString := operations.Pop().(string)
-				prevType, _ := m.StringToToken(prevTokenString)
+				prevType, _ := m.StringToTokenType(prevTokenString)
 				if prevType == types.LParen {
 					foundMatchingParen = true
 					break
@@ -139,7 +139,7 @@ func toPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 	}
 	for operations.Size() > 0 {
 		prevTokenString := operations.Pop().(string)
-		prevType, _ := m.StringToToken(prevTokenString)
+		prevType, _ := m.StringToTokenType(prevTokenString)
 		if prevType == types.LParen {
 			panic("Expression has unmatched parentheses.")
 		}
