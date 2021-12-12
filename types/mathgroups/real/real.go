@@ -7,9 +7,7 @@ import (
 )
 
 const (
-	Number types.Keyword = iota
-	Variable
-	Add
+	Add types.Keyword = iota
 	Subtract
 	Multiply
 	Divide
@@ -19,13 +17,9 @@ const (
 	Tan
 	Log
 	Exp
-	LParen
-	RParen
 )
 
 var realTokenMap = map[types.Keyword]types.KeywordData{
-	Number:   {Symbol: "", TokenType: types.Value},
-	Variable: {Symbol: "", TokenType: types.Value},
 	Add:      {Symbol: "+", TokenType: types.Operator},
 	Subtract: {Symbol: "-", TokenType: types.Operator},
 	Multiply: {Symbol: "*", TokenType: types.Operator},
@@ -36,8 +30,6 @@ var realTokenMap = map[types.Keyword]types.KeywordData{
 	Tan:      {Symbol: "tan", TokenType: types.SingleFunction},
 	Log:      {Symbol: "log", TokenType: types.SingleFunction},
 	Exp:      {Symbol: "exp", TokenType: types.SingleFunction},
-	LParen:   {Symbol: "(", TokenType: types.Paren},
-	RParen:   {Symbol: ")", TokenType: types.Paren},
 }
 
 var realStringToToken = map[string]types.Keyword{
@@ -51,8 +43,6 @@ var realStringToToken = map[string]types.Keyword{
 	"tan": Tan,
 	"log": Log,
 	"exp": Exp,
-	"(":   LParen,
-	")":   RParen,
 }
 
 var realOperatorPrecedence = map[types.Keyword]int{
@@ -61,11 +51,6 @@ var realOperatorPrecedence = map[types.Keyword]int{
 	Multiply: 2,
 	Divide:   2,
 	Power:    3,
-	Sin:      4,
-	Cos:      4,
-	Tan:      4,
-	Log:      4,
-	Exp:      4,
 }
 
 func getReal(s string) (interface{}, bool) {
@@ -76,4 +61,4 @@ func getReal(s string) (interface{}, bool) {
 	return 0, false
 }
 
-var Real = types.NewMathGroup(realTokenMap, realStringToToken, realOperatorPrecedence)
+var Real = types.NewMathGroup(realTokenMap, realStringToToken, realOperatorPrecedence, getReal)

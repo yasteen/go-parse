@@ -45,7 +45,7 @@ func isValidExpression(tokens []string, m *types.MathGroup) (bool, int) {
 	}
 	prevTokenType, _ := m.StringToToken(tokens[0])
 	if len(tokens) == 1 {
-		return prevTokenType == types.Value, currentCharLength
+		return prevTokenType == types.Value || prevTokenType == types.Variable, currentCharLength
 	}
 	if prevTokenType == types.Operator || prevTokenType == types.RParen {
 		return false, currentCharLength
@@ -55,7 +55,7 @@ func isValidExpression(tokens []string, m *types.MathGroup) (bool, int) {
 	for i := 1; i < len(tokens); i++ {
 		tokenType, _ := m.StringToToken(tokens[i])
 		// Whether the previous token could be the end of an expression
-		prevIsEndable := prevTokenType == types.Value || prevTokenType == types.RParen
+		prevIsEndable := prevTokenType == types.Value || prevTokenType == types.Variable || prevTokenType == types.RParen
 		// Whether the current token can take place after an endable previous token
 		currFollows := tokenType == types.Operator || tokenType == types.RParen
 		if (prevIsEndable && !currFollows) || (!prevIsEndable && currFollows) {
@@ -67,7 +67,7 @@ func isValidExpression(tokens []string, m *types.MathGroup) (bool, int) {
 		prevTokenType = tokenType
 	}
 
-	validEnd := prevTokenType == types.Value || prevTokenType == types.RParen
+	validEnd := prevTokenType == types.Value || prevTokenType == types.Variable || prevTokenType == types.RParen
 	if !validEnd {
 		currentCharLength -= len(tokens[len(tokens)-1])
 	}
@@ -105,6 +105,8 @@ func toPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 		tokenType, token := m.StringToToken(t)
 		switch tokenType {
 		case types.Value:
+			fallthrough
+		case types.Variable:
 			output = append(output, t)
 		case types.SingleFunction:
 			operations.Push(t)
