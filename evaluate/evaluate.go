@@ -9,34 +9,51 @@ import (
 )
 
 type Interval struct {
-	min  float64
-	step float64
-	max  float64
+	Start interface{}
+	End   interface{}
+	Step  interface{}
+	// Return next value in the interval. Terminates if nil.
+	next func(cur interface{}, step interface{}, end interface{}) interface{}
 }
 
-func Evaluate(expression parse.ParsedExpression, variables map[string]Interval) {
-
+func (i *Interval) Next(current interface{}) interface{} {
+	return i.next(current, i.Step, i.End)
 }
 
-func evaluateOnce(expression parse.ParsedExpression, variables map[string]float64) {
-	numbers := stack.New()
+// For now, assume there's only one variable
+// TODO: Finish implementation for any number of variables, and rethink output type.
+func Evaluate(expression parse.ParsedExpression, domain Interval, m *types.MathGroup) []interface{} {
+	result := []interface{}{}
+	for current := domain.Start; current != nil; current = domain.Next(current) {
+		result = append(result, evaluateOnce(expression, current, m))
+	}
+	return result
+}
+
+func evaluateOnce(expression parse.ParsedExpression, variable interface{}, m *types.MathGroup) interface{} {
+	values := stack.New()
 	for _, t := range expression {
-		token, tokenType := types.StringToToken(t)
-		var number float64
+		tokenType, keyword := m.StringToTokenType(t)
+		var value interface{}
 		switch tokenType {
 		case types.Value:
-			if token == types.Number {
-				number, _ = strconv.ParseFloat(t, 64)
-			} else {
-				number = variables[t]
-			}
+			value, _ = strconv.ParseFloat(t, 64)
+		case types.Variable:
+			value = variable
 		case types.Operator:
-			val1 := numbers.Pop()
-			val2 := numbers.Pop()
+			val1 := values.Pop()
+			val2 := values.Pop()
+			value = m.ApplyKeyword(keyword, val1, val2)
 		case types.SingleFunction:
+			val := values.Pop()
+			value = m.ApplyKeyword(keyword, val)
 		default:
 			panic("Invalid token.")
 		}
-		numbers.Push(number)
+		values.Push(value)
 	}
+	if values.Size() != 1 {
+		panic("Expression is invalid.")
+	}
+	return values.Pop()
 }
