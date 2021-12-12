@@ -56,6 +56,24 @@ var _tokenMap = map[Token]_token{
 	RParen:   {")", Paren},
 }
 
+// High number <=> High precedence
+var _operatorPrecedence = map[Token]int{
+	Add:      1,
+	Subtract: 1,
+	Multiply: 2,
+	Divide:   2,
+	Power:    3,
+	Sin:      4,
+	Cos:      4,
+	Tan:      4,
+	Log:      4,
+	Exp:      4,
+}
+
+func PushCurrentOp(previous Token, current Token) bool {
+	return _operatorPrecedence[current] > _operatorPrecedence[previous]
+}
+
 // Missing Value token types because they are unknown
 var _stringToToken = map[string]Token{
 	"+":   Add,
@@ -89,7 +107,7 @@ func StringToToken(s string) (token Token, t TokenType) {
 	}
 
 	// Is number
-	if _, err := strconv.Atoi(s); err == nil || s == "e" {
+	if _, err := strconv.Atoi(s); err == nil {
 		return Number, Value
 	}
 
