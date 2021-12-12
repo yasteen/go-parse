@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/karalabe/cookiejar/collections/stack"
+	"github.com/yasteen/go-parse/types"
 )
 
 // A valid equation in postfix notation
@@ -22,7 +23,7 @@ func getNextTokenString(expression string, index int) (tokenString string, nextI
 				index++
 			}
 			break
-		} else if c == TokenToString(RParen) || c == TokenToString(LParen) {
+		} else if c == types.TokenToString(types.RParen) || c == types.TokenToString(types.LParen) {
 			if tokenString == "" {
 				tokenString = c
 				index++
@@ -39,21 +40,21 @@ func isValidExpression(tokens []string) (bool, int) {
 	if len(tokens) == 0 {
 		return true, currentCharLength
 	}
-	prevToken, prevTokenType := StringToToken(tokens[0])
+	prevToken, prevTokenType := types.StringToToken(tokens[0])
 	if len(tokens) == 1 {
-		return prevTokenType == Value, currentCharLength
+		return prevTokenType == types.Value, currentCharLength
 	}
-	if prevTokenType == Operator || prevToken == RParen {
+	if prevTokenType == types.Operator || prevToken == types.RParen {
 		return false, currentCharLength
 	}
 	currentCharLength += len(tokens[0])
 
 	for i := 1; i < len(tokens); i++ {
-		token, tokenType := StringToToken(tokens[i])
+		token, tokenType := types.StringToToken(tokens[i])
 		// Whether the previous token could be the end of an expression
-		prevIsEndable := prevTokenType == Value || prevToken == RParen
+		prevIsEndable := prevTokenType == types.Value || prevToken == types.RParen
 		// Whether the current token can take place after an endable previous token
-		currFollows := tokenType == Operator || token == RParen
+		currFollows := tokenType == types.Operator || token == types.RParen
 		if (prevIsEndable && !currFollows) || (!prevIsEndable && currFollows) {
 			return false, currentCharLength
 		}
@@ -64,7 +65,7 @@ func isValidExpression(tokens []string) (bool, int) {
 		prevTokenType = tokenType
 	}
 
-	validEnd := prevTokenType == Value || prevToken == RParen
+	validEnd := prevTokenType == types.Value || prevToken == types.RParen
 	if !validEnd {
 		currentCharLength -= len(tokens[len(tokens)-1])
 	}
@@ -74,8 +75,8 @@ func isValidExpression(tokens []string) (bool, int) {
 
 func verifyValidVariables(tokens []string, variables map[string]struct{}) {
 	for _, t := range tokens {
-		token, _ := StringToToken(t)
-		if token == Variable {
+		token, _ := types.StringToToken(t)
+		if token == types.Variable {
 			if _, ok := variables[t]; !ok {
 				panic("Variable " + t + " is not recognized.")
 			}
@@ -99,33 +100,33 @@ func toPostfix(tokens ParsedExpression) ParsedExpression {
 	operations := stack.New()
 
 	for _, t := range tokens {
-		token, tokenType := StringToToken(t)
+		token, tokenType := types.StringToToken(t)
 		switch tokenType {
-		case Value:
+		case types.Value:
 			output = append(output, t)
-		case SingleFunction:
+		case types.SingleFunction:
 			operations.Push(token)
-		case Operator:
+		case types.Operator:
 			for operations.Size() > 0 {
-				op := operations.Top().(Token)
-				if op == LParen || PushCurrentOp(op, token) {
+				op := operations.Top().(types.Token)
+				if op == types.LParen || types.PushCurrentOp(op, token) {
 					break
 				}
-				output = append(output, TokenToString(operations.Pop().(Token)))
+				output = append(output, types.TokenToString(operations.Pop().(types.Token)))
 			}
 			operations.Push(token)
-		case Paren:
-			if token == LParen {
+		case types.Paren:
+			if token == types.LParen {
 				operations.Push(token)
 			} else {
 				foundMatchingParen := false
 				for operations.Size() > 0 {
-					op := operations.Pop().(Token)
-					if op == LParen {
+					op := operations.Pop().(types.Token)
+					if op == types.LParen {
 						foundMatchingParen = true
 						break
 					}
-					output = append(output, TokenToString(op))
+					output = append(output, types.TokenToString(op))
 				}
 				if !foundMatchingParen {
 					panic("Expression has unmatched parentheses.")
@@ -134,11 +135,11 @@ func toPostfix(tokens ParsedExpression) ParsedExpression {
 		}
 	}
 	for operations.Size() > 0 {
-		op := operations.Pop().(Token)
-		if op == LParen {
+		op := operations.Pop().(types.Token)
+		if op == types.LParen {
 			panic("Expression has unmatched parentheses.")
 		}
-		output = append(output, TokenToString(op))
+		output = append(output, types.TokenToString(op))
 	}
 
 	return output
