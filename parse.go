@@ -1,6 +1,13 @@
 package parse
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/karalabe/cookiejar/collections/stack"
+)
+
+// A valid equation in postfix notation
+type ParsedExpression []string
 
 // Returns a string with the next token.
 func getNextTokenString(expression string, index int) (tokenString string, nextIndex int) {
@@ -65,8 +72,19 @@ func isValidExpression(tokens []string) (bool, int) {
 	return validEnd, currentCharLength
 }
 
-func equationToTokens(expression string) []string {
-	tokens := []string{}
+func verifyValidVariables(tokens []string, variables map[string]struct{}) {
+	for _, t := range tokens {
+		token, _ := StringToToken(t)
+		if token == Variable {
+			if _, ok := variables[t]; !ok {
+				panic("Variable " + t + " is not recognized.")
+			}
+		}
+	}
+}
+
+func parseExpression(expression string) ParsedExpression {
+	tokens := ParsedExpression([]string{})
 	for i := 0; i < len(expression); {
 		token, nextIndex := getNextTokenString(expression, i)
 		tokens = append(tokens, token)
@@ -75,10 +93,62 @@ func equationToTokens(expression string) []string {
 	return tokens
 }
 
-func Parse(expression string, variables map[string]float64) {
-	tokens := equationToTokens(expression)
+// Change to postfix for slight increase in speed for repeated calculations
+func toPostfix(tokens ParsedExpression) ParsedExpression {
+	output := ParsedExpression([]string{})
+	operations := stack.New()
+
+	for _, t := range tokens {
+		token, tokenType := StringToToken(t)
+		switch tokenType {
+		case Value:
+			output = append(output, t)
+		case SingleFunction:
+			operations.Push(token)
+		case Operator:
+			for operations.Size() > 0 {
+				op := operations.Top().(Token)
+				if op == LParen || PushCurrentOp(op, token) {
+					break
+				}
+				output = append(output, TokenToString(operations.Pop().(Token)))
+			}
+			operations.Push(token)
+		case Paren:
+			if token == LParen {
+				operations.Push(token)
+			} else {
+				foundMatchingParen := false
+				for operations.Size() > 0 {
+					op := operations.Pop().(Token)
+					if op == LParen {
+						foundMatchingParen = true
+						break
+					}
+					output = append(output, TokenToString(op))
+				}
+				if !foundMatchingParen {
+					panic("Expression has unmatched parentheses.")
+				}
+			}
+		}
+	}
+	for operations.Size() > 0 {
+		op := operations.Pop().(Token)
+		if op == LParen {
+			panic("Expression has unmatched parentheses.")
+		}
+		output = append(output, TokenToString(op))
+	}
+
+	return output
+}
+
+func Parse(expression string, variables map[string]struct{}) ParsedExpression {
+	tokens := parseExpression(expression)
 	if isValid, i := isValidExpression(tokens); !isValid {
 		panic("Expression is not valid\n" + expression + strings.Repeat(" ", i) + "^")
 	}
-
+	verifyValidVariables(tokens, variables)
+	return toPostfix(tokens)
 }
