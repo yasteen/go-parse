@@ -89,8 +89,8 @@ func verifyValidVariables(tokens []string, variables map[string]struct{}, m *typ
 func parseExpression(expression string, m *types.MathGroup) ParsedExpression {
 	tokens := ParsedExpression([]string{})
 	for i := 0; i < len(expression); {
-		token, nextIndex := getNextTokenString(expression, i, m)
-		tokens = append(tokens, token)
+		tokenString, nextIndex := getNextTokenString(expression, i, m)
+		tokens = append(tokens, tokenString)
 		i = nextIndex
 	}
 	return tokens
@@ -102,7 +102,7 @@ func toPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 	operations := stack.New()
 
 	for _, t := range tokens {
-		tokenType, token := m.StringToTokenType(t)
+		tokenType, keyword := m.StringToTokenType(t)
 		switch tokenType {
 		case types.Value:
 			fallthrough
@@ -113,7 +113,7 @@ func toPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 		case types.Operator:
 			for operations.Size() > 0 {
 				prevType, prevKeyWord := m.StringToTokenType(operations.Top().(string))
-				if prevType == types.LParen || m.PushCurrentOp(prevKeyWord, prevType, token) {
+				if prevType == types.LParen || m.PushCurrentOp(prevKeyWord, prevType, keyword) {
 					break
 				}
 				output = append(output, m.KeywordToString(operations.Pop().(types.Keyword)))
