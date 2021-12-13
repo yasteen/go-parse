@@ -28,6 +28,7 @@ const (
 	Exp
 )
 
+// Helper function to convert from Cartesian to Polar form
 func cartesianToPolar(re float64, im float64) (mod float64, arg float64) {
 	if re == 0 && im == 0 {
 		panic("Arg is undefined.")
