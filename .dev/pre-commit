@@ -1,0 +1,7 @@
+echo "Running tests"
+../../run-tests
+
+if [ $? -ne 0 ]; then
+    echo "Tests must pass before making your commit."
+    exit 1
+fi

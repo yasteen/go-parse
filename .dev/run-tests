@@ -1,0 +1,4 @@
+set -e
+
+go test ./parse
+go test ./evaluate
