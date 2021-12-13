@@ -44,13 +44,13 @@ func cartesianToPolar(re float64, im float64) (mod float64, arg float64) {
 func OpAdd(params ...interface{}) interface{} {
 	return ComplexNumber{
 		Re: params[0].(ComplexNumber).Re + params[1].(ComplexNumber).Re,
-		Im: params[0].(ComplexNumber).Re + params[1].(ComplexNumber).Im,
+		Im: params[0].(ComplexNumber).Im + params[1].(ComplexNumber).Im,
 	}
 }
 func OpSubtract(params ...interface{}) interface{} {
 	return ComplexNumber{
 		Re: params[0].(ComplexNumber).Re - params[1].(ComplexNumber).Re,
-		Im: params[0].(ComplexNumber).Re - params[1].(ComplexNumber).Im,
+		Im: params[0].(ComplexNumber).Im - params[1].(ComplexNumber).Im,
 	}
 }
 func OpMultiply(params ...interface{}) interface{} {
@@ -98,8 +98,8 @@ func FnExp(params ...interface{}) interface{} {
 func FnSin(params ...interface{}) interface{} {
 	re := params[0].(ComplexNumber).Re
 	im := params[1].(ComplexNumber).Im
-	first := FnExp(ComplexNumber{Re: -im, Im: re}).(ComplexNumber)  // e^(iz)
-	second := FnExp(ComplexNumber{Re: im, Im: -re}).(ComplexNumber) // e^(-iz)
+	first := FnExp(ComplexNumber{-im, re}).(ComplexNumber)  // e^(iz)
+	second := FnExp(ComplexNumber{im, -re}).(ComplexNumber) // e^(-iz)
 	return ComplexNumber{
 		Re: (first.Im - second.Im) / 2,
 		Im: (second.Re - first.Re) / 2,
@@ -108,8 +108,8 @@ func FnSin(params ...interface{}) interface{} {
 func FnCos(params ...interface{}) interface{} {
 	re := params[0].(ComplexNumber).Re
 	im := params[1].(ComplexNumber).Im
-	first := FnExp(ComplexNumber{Re: -im, Im: re}).(ComplexNumber)  // e^(iz)
-	second := FnExp(ComplexNumber{Re: im, Im: -re}).(ComplexNumber) // e^(-iz)
+	first := FnExp(ComplexNumber{-im, re}).(ComplexNumber)  // e^(iz)
+	second := FnExp(ComplexNumber{im, -re}).(ComplexNumber) // e^(-iz)
 	return ComplexNumber{
 		Re: (first.Re - second.Re) / 2,
 		Im: (first.Im - second.Im) / 2,
@@ -159,20 +159,26 @@ var complexOperatorPrecedence = map[types.Keyword]int{
 }
 
 func getComplex(s string) (interface{}, bool) {
+	if strings.Contains(s, "_") {
+		nums := strings.Split(s, "_")
+		if len(nums) == 2 {
+			re, err := strconv.ParseFloat(nums[0], 64)
+			im, err2 := strconv.ParseFloat(nums[1], 64)
+			if err == nil && err2 == nil {
+				return ComplexNumber{re, im}, true
+			}
+		}
+		return 0, false
+	}
 	if num, err := strconv.ParseFloat(s, 64); err == nil {
-		return ComplexNumber{Re: num, Im: 0}, true
+		return ComplexNumber{num, 0}, true
+	}
+	if s == "i" {
+		return ComplexNumber{0, 1}, true
 	}
 	if len(s) != 0 && s[len(s)-1] == 'i' {
 		if num, err := strconv.ParseFloat(s[:len(s)-1], 64); err == nil {
-			return ComplexNumber{Re: 0, Im: num}, true
-		}
-	}
-	nums := strings.Split(s, "_")
-	if len(nums) == 2 {
-		re, err := strconv.ParseFloat(s, 64)
-		im, err2 := strconv.ParseFloat(s, 64)
-		if err == nil && err2 == nil {
-			return ComplexNumber{Re: re, Im: im}, true
+			return ComplexNumber{0, num}, true
 		}
 	}
 	return 0, false
@@ -197,9 +203,9 @@ func NewComplexInterval(start ComplexNumber, step float64, end ComplexNumber) *t
 				if nextIm > end.Im {
 					return nil
 				}
-				return ComplexNumber{Re: nextRe, Im: nextIm}
+				return ComplexNumber{nextRe, nextIm}
 			}
-			return ComplexNumber{Re: nextRe, Im: nextIm}
+			return ComplexNumber{nextRe, nextIm}
 		},
 	}
 }
