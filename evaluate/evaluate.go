@@ -1,8 +1,6 @@
 package evaluate
 
 import (
-	"strconv"
-
 	"github.com/karalabe/cookiejar/collections/stack"
 	"github.com/yasteen/go-parse/parse"
 	"github.com/yasteen/go-parse/types"
@@ -25,7 +23,7 @@ func EvaluateOnce(expression parse.ParsedExpression, variable interface{}, m *ty
 		var value interface{}
 		switch tokenType {
 		case types.Value:
-			value, _ = strconv.ParseFloat(t, 64)
+			value, _ = m.GetValue(t)
 		case types.Variable:
 			value = variable
 		case types.Operator:

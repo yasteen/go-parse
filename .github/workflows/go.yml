@@ -22,3 +22,6 @@ jobs:
 
       - name: Test Evaluate
         run: go test -v ./evaluate
+
+      - name: Test Complex
+        run go test -v ./types/mathgroups/complex

@@ -28,7 +28,7 @@ type MathGroup struct {
 	keywordMap         map[Keyword]KeywordData
 	keywordStringMap   map[string]Keyword
 	operatorPrecedence map[Keyword]int // For operators
-	getValue           func(string) (interface{}, bool)
+	GetValue           func(string) (interface{}, bool)
 }
 
 // Constructor for MathGroup
@@ -43,7 +43,7 @@ func NewMathGroup(
 		keywordMap:         keywordMap,
 		keywordStringMap:   keywordStringMap,
 		operatorPrecedence: operatorPrecedence,
-		getValue:           getValue,
+		GetValue:           getValue,
 	}
 }
 
@@ -80,7 +80,7 @@ func (m *MathGroup) StringToTokenType(s string) (TokenType, Keyword) {
 	}
 
 	// Is a valid value
-	if _, isValue := m.getValue(s); isValue {
+	if _, isValue := m.GetValue(s); isValue {
 		return Value, 0
 	}
 

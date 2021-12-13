@@ -2,3 +2,4 @@ set -e
 
 go test ./parse
 go test ./evaluate
+go test ./types/mathgroups/complex

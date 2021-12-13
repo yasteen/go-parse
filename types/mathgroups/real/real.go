@@ -91,7 +91,6 @@ var realOperatorPrecedence = map[types.Keyword]int{
 }
 
 func getReal(s string) (interface{}, bool) {
-
 	if num, err := strconv.ParseFloat(s, 64); err == nil {
 		return num, true
 	}
@@ -101,16 +100,16 @@ func getReal(s string) (interface{}, bool) {
 var Real = types.NewMathGroup(realTokenMap, realStringToToken, realOperatorPrecedence, getReal)
 
 func NewRealInterval(start float64, step float64, end float64) *types.Interval {
-	if step == 0 || (start < end) != (step > 0) {
+	if step == 0 || start > end {
 		panic("Invalid interval")
 	}
 	return &types.Interval{
 		Start: start,
 		Step:  step,
 		End:   end,
-		Next: func(cur interface{}, step interface{}, end interface{}) interface{} {
-			next := cur.(float64) + step.(float64)
-			if next > end.(float64) {
+		Next: func(cur interface{}) interface{} {
+			next := cur.(float64) + step
+			if next > end {
 				return nil
 			}
 			return next
