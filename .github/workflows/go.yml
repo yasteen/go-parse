@@ -21,4 +21,4 @@ jobs:
         run: go test -v ./parse
 
       - name: Test Evaluate
-        run go test -v ./evaluate
+        run: go test -v ./evaluate
