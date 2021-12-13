@@ -4,6 +4,8 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/yasteen/go-parse/evaluate"
+	"github.com/yasteen/go-parse/parse"
 	"github.com/yasteen/go-parse/types"
 )
 
@@ -114,4 +116,14 @@ func NewRealInterval(start float64, step float64, end float64) *types.Interval {
 			return next
 		},
 	}
+}
+
+func MapValues(expression string, interval types.Interval, varName string) []float64 {
+	parsedExpression := parse.Parse(expression, varName, Real)
+	result := evaluate.Evaluate(parsedExpression, interval, Real)
+	ret := []float64{}
+	for _, val := range result {
+		ret = append(ret, val.(float64))
+	}
+	return ret
 }

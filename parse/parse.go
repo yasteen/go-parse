@@ -11,7 +11,7 @@ import (
 type ParsedExpression []string
 
 // Returns a string with the next token.
-func getNextTokenString(expression string, index int, m *types.MathGroup) (tokenString string, nextIndex int) {
+func GetNextTokenString(expression string, index int, m *types.MathGroup) (tokenString string, nextIndex int) {
 	tokenString = ""
 	for ; index < len(expression); index++ {
 		c := string(expression[index])
@@ -38,7 +38,7 @@ func getNextTokenString(expression string, index int, m *types.MathGroup) (token
 	return tokenString, index
 }
 
-func isValidExpression(tokens []string, m *types.MathGroup) (bool, int) {
+func IsValidExpression(tokens []string, m *types.MathGroup) (bool, int) {
 	currentCharLength := 0
 	if len(tokens) == 0 {
 		return true, currentCharLength
@@ -89,7 +89,7 @@ func assertVariableTokensAreValid(tokens []string, variableName string, m *types
 func parseExpression(expression string, m *types.MathGroup) ParsedExpression {
 	tokens := ParsedExpression([]string{})
 	for i := 0; i < len(expression); {
-		tokenString, nextIndex := getNextTokenString(expression, i, m)
+		tokenString, nextIndex := GetNextTokenString(expression, i, m)
 		tokens = append(tokens, tokenString)
 		i = nextIndex
 	}
@@ -97,7 +97,7 @@ func parseExpression(expression string, m *types.MathGroup) ParsedExpression {
 }
 
 // Change to postfix for slight increase in speed for repeated calculations
-func toPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
+func ToPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 	output := ParsedExpression([]string{})
 	operations := stack.New()
 
@@ -152,8 +152,8 @@ func toPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 func Parse(expression string, variableName string, m *types.MathGroup) ParsedExpression {
 	tokens := parseExpression(expression, m)
 	assertVariableTokensAreValid(tokens, variableName, m)
-	if isValid, i := isValidExpression(tokens, m); !isValid {
+	if isValid, i := IsValidExpression(tokens, m); !isValid {
 		panic("Expression is not valid\n" + expression + strings.Repeat(" ", i) + "^")
 	}
-	return toPostfix(tokens, m)
+	return ToPostfix(tokens, m)
 }
