@@ -12,7 +12,7 @@ import (
 // TODO: Finish implementation for any number of variables, and rethink output type.
 func Evaluate(expression parse.ParsedExpression, domain types.Interval, m *types.MathGroup) []interface{} {
 	result := []interface{}{}
-	for current := domain.Start; current != nil; current = domain.Next(current) {
+	for current := domain.Start; current != nil; current = domain.NextValue(current) {
 		result = append(result, evaluateOnce(expression, current, m))
 	}
 	return result

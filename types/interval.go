@@ -4,10 +4,10 @@ type Interval struct {
 	Start interface{}
 	End   interface{}
 	Step  interface{}
-	// Return next value in the interval. Terminates if nil.
-	next func(cur interface{}, step interface{}, end interface{}) interface{}
+	// Return Next value in the interval. Terminates if nil.
+	Next func(cur interface{}, step interface{}, end interface{}) interface{}
 }
 
-func (i *Interval) Next(current interface{}) interface{} {
-	return i.next(current, i.Step, i.End)
+func (i *Interval) NextValue(current interface{}) interface{} {
+	return i.Next(current, i.Step, i.End)
 }

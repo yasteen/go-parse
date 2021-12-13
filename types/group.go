@@ -31,17 +31,8 @@ type MathGroup struct {
 	getValue           func(string) (interface{}, bool)
 }
 
-func New() *MathGroup {
-	return &MathGroup{
-		keywordMap:         map[Keyword]KeywordData{},
-		keywordStringMap:   map[string]Keyword{},
-		operatorPrecedence: map[Keyword]int{},
-		getValue: func(s string) (interface{}, bool) {
-			return 0, false
-		},
-	}
-}
-
+// Constructor for MathGroup
+// TODO: Add verification for the three maps
 func NewMathGroup(
 	keywordMap map[Keyword]KeywordData,
 	keywordStringMap map[string]Keyword,

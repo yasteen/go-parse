@@ -97,3 +97,21 @@ func getReal(s string) (interface{}, bool) {
 }
 
 var Real = types.NewMathGroup(realTokenMap, realStringToToken, realOperatorPrecedence, getReal)
+
+func NewRealInterval(start float64, step float64, end float64) *types.Interval {
+	if step == 0 || (start < end) != (step > 0) {
+		panic("Invalid interval")
+	}
+	return &types.Interval{
+		Start: start,
+		Step:  step,
+		End:   end,
+		Next: func(cur interface{}, step interface{}, end interface{}) interface{} {
+			next := cur.(float64) + step.(float64)
+			if next > end.(float64) {
+				return nil
+			}
+			return next
+		},
+	}
+}
