@@ -29,7 +29,7 @@ var realTokenMap = map[types.Keyword]types.KeywordData{
 		}},
 	Subtract: {Symbol: "-", TokenType: types.Operator,
 		Apply: func(params ...interface{}) interface{} {
-			return params[0].(float64) + params[1].(float64)
+			return params[0].(float64) - params[1].(float64)
 		}},
 	Multiply: {Symbol: "*", TokenType: types.Operator,
 		Apply: func(params ...interface{}) interface{} {

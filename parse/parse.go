@@ -19,13 +19,13 @@ func GetNextTokenString(expression string, index int, m *types.MathGroup) (token
 			if tokenString == "" {
 				continue
 			}
-			for index < len(expression) && c == " " {
+			for index < len(expression) && string(expression[index]) == " " {
 				index++
 			}
 			break
 		} else {
 			tokenType, _ := m.StringToTokenType(c)
-			if tokenType == types.RParen || tokenType == types.LParen {
+			if tokenType == types.RParen || tokenType == types.LParen || tokenType == types.Operator {
 				if tokenString == "" {
 					tokenString = c
 					index++
@@ -116,7 +116,7 @@ func ToPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 				if prevType == types.LParen || m.PushCurrentOp(prevKeyWord, prevType, keyword) {
 					break
 				}
-				output = append(output, m.KeywordToString(operations.Pop().(types.Keyword)))
+				output = append(output, operations.Pop().(string))
 			}
 			operations.Push(t)
 		case types.LParen:

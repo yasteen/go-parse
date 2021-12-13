@@ -13,12 +13,12 @@ import (
 func Evaluate(expression parse.ParsedExpression, domain types.Interval, m *types.MathGroup) []interface{} {
 	result := []interface{}{}
 	for current := domain.Start; current != nil; current = domain.NextValue(current) {
-		result = append(result, evaluateOnce(expression, current, m))
+		result = append(result, EvaluateOnce(expression, current, m))
 	}
 	return result
 }
 
-func evaluateOnce(expression parse.ParsedExpression, variable interface{}, m *types.MathGroup) interface{} {
+func EvaluateOnce(expression parse.ParsedExpression, variable interface{}, m *types.MathGroup) interface{} {
 	values := stack.New()
 	for _, t := range expression {
 		tokenType, keyword := m.StringToTokenType(t)
@@ -29,8 +29,8 @@ func evaluateOnce(expression parse.ParsedExpression, variable interface{}, m *ty
 		case types.Variable:
 			value = variable
 		case types.Operator:
-			val1 := values.Pop()
 			val2 := values.Pop()
+			val1 := values.Pop()
 			value = m.ApplyKeyword(keyword, val1, val2)
 		case types.SingleFunction:
 			val := values.Pop()

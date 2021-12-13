@@ -59,7 +59,7 @@ func (m *MathGroup) KeywordToString(keyword Keyword) (s string) {
 	return ""
 }
 func (m *MathGroup) ApplyKeyword(keyword Keyword, args ...interface{}) interface{} {
-	return m.keywordMap[keyword].Apply(args)
+	return m.keywordMap[keyword].Apply(args...)
 }
 
 // Returns TokenType for given string. Keyword is added if applicable.
