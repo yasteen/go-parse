@@ -1,6 +1,8 @@
 package parse_test
 
 import (
+	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"testing"
@@ -28,8 +30,8 @@ func TestGetNextTokenWithString(t *testing.T) {
 	testGetNextTokenStringHelper("x * log((5 +3) / 2)", []string{"x", "*", "log", "(", "(", "5", "+", "3", ")", "/", "2", ")"}, t)
 }
 
-func testIsValidExpressionHelper(input []string, expected bool, t *testing.T) {
-	if isValid, i := parse.IsValidExpression(input, real.Real); isValid != expected {
+func testIsLocallyValidHelper(input []string, expected bool, t *testing.T) {
+	if isValid, i := parse.IsLocallyValid(input, real.Real); isValid != expected {
 		str := ""
 		for _, s := range input {
 			str += s
@@ -42,46 +44,62 @@ func testIsValidExpressionHelper(input []string, expected bool, t *testing.T) {
 		t.Error(errorString)
 	}
 }
-func TestIsValidExpression(t *testing.T) {
-	testIsValidExpressionHelper([]string{"x"}, true, t)
-	testIsValidExpressionHelper([]string{"(", "x", ")"}, true, t)
-	testIsValidExpressionHelper([]string{"sin", "x"}, true, t)
-	testIsValidExpressionHelper([]string{"1", "+", "3", "*", "sin", "y"}, true, t)
-	testIsValidExpressionHelper([]string{"(", "x", "^", "2", "-", "9", ")", "+", "x"}, true, t)
+func TestIsLocallyValid(t *testing.T) {
+	testIsLocallyValidHelper([]string{"x"}, true, t)
+	testIsLocallyValidHelper([]string{"(", "x", ")"}, true, t)
+	testIsLocallyValidHelper([]string{"sin", "x"}, true, t)
+	testIsLocallyValidHelper([]string{"1", "+", "3", "*", "sin", "y"}, true, t)
+	testIsLocallyValidHelper([]string{"(", "x", "^", "2", "-", "9", ")", "+", "x"}, true, t)
 
-	testIsValidExpressionHelper([]string{"("}, false, t)
-	testIsValidExpressionHelper([]string{")"}, false, t)
-	testIsValidExpressionHelper([]string{"+"}, false, t)
-	testIsValidExpressionHelper([]string{"sin"}, false, t)
-	testIsValidExpressionHelper([]string{"sin", "+", "x"}, false, t)
-	testIsValidExpressionHelper([]string{"4", "^"}, false, t)
+	testIsLocallyValidHelper([]string{"("}, false, t)
+	testIsLocallyValidHelper([]string{")"}, false, t)
+	testIsLocallyValidHelper([]string{"+"}, false, t)
+	testIsLocallyValidHelper([]string{"sin"}, false, t)
+	testIsLocallyValidHelper([]string{"sin", "+", "x"}, false, t)
+	testIsLocallyValidHelper([]string{"4", "^"}, false, t)
 }
 
-func testToPostfixHelper(input []string, expected []string, unmatchedParen bool, t *testing.T) {
-	defer func() {
-		recover()
-	}()
-	output := parse.ToPostfix(input, real.Real)
+func testToPostfixHelper(input []string, expected []string, unmatchedParen bool) error {
+	output, err := parse.ToPostfix(input, real.Real)
 
 	if unmatchedParen {
-		// Should not reach here if we expect a panic
-		t.Error("Failed to detect unmatched parentheses.")
+		if err == nil {
+			return errors.New("Failed to detect unmatched parentheses.")
+		}
 	} else {
+
+		if err != nil {
+			return err
+		}
+
 		if len(output) != len(expected) {
-			t.Error("Output and expected output length do not match. Expected", expected, "Produced", output)
+			return errors.New(fmt.Sprintln("Output and expected output length do not match. Expected", expected, "Produced", output))
 		}
 		for i := 0; i < len(expected); i++ {
 			if output[i] != expected[i] {
-				t.Error("Output and expected output do not match at index", i, "- Expected", expected[i], "Produced", output[i])
+				return errors.New(fmt.Sprintln("Output and expected output do not match at index", i, "- Expected", expected[i], "Produced", output[i]))
 			}
 		}
 	}
+	return nil
 }
 
 func TestToPostfixHelper(t *testing.T) {
-	testToPostfixHelper([]string{"x", "+", "4"}, []string{"x", "4", "+"}, false, t)
-	testToPostfixHelper([]string{"(", "(", "x", "+", "4", ")", "^", "5", ")"}, []string{"x", "4", "+", "5", "^"}, false, t)
-
-	testToPostfixHelper([]string{"(", "(", "x", "+", "4", "^", "5", ")"}, []string{}, true, t)
-	testToPostfixHelper([]string{"(", "x", "+", "4"}, []string{}, true, t)
+	var err error
+	err = testToPostfixHelper([]string{"x", "+", "4"}, []string{"x", "4", "+"}, false)
+	if err != nil {
+		t.Error(err)
+	}
+	err = testToPostfixHelper([]string{"(", "(", "x", "+", "4", ")", "^", "5", ")"}, []string{"x", "4", "+", "5", "^"}, false)
+	if err != nil {
+		t.Error(err)
+	}
+	err = testToPostfixHelper([]string{"(", "(", "x", "+", "4", "^", "5", ")"}, []string{}, true)
+	if err != nil {
+		t.Error(err)
+	}
+	err = testToPostfixHelper([]string{"(", "x", "+", "4"}, []string{}, true)
+	if err != nil {
+		t.Error(err)
+	}
 }

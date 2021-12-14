@@ -1,5 +1,5 @@
 set -e
 
-go test ./parse
-go test ./evaluate
-go test ./types/mathgroups/complex
+go test -v ./parse
+go test -v ./evaluate
+go test -v ./types/mathgroups/complex

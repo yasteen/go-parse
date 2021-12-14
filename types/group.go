@@ -1,17 +1,20 @@
+// Constants and types representing data relating to a mathematical group/system used for parsing/evaluating
 package types
 
-// keywords include Operators and SingleFunctions
+// Operators and SingleFunctions
 type Keyword int
 
+// The type of a token.
 type TokenType int
 
+// The possible token types
 const (
-	Value    TokenType = iota // A literal value
-	Variable                  // A variable acting as a placeholder for a literal
-	LParen
-	RParen
-	Operator       // A math operator
-	SingleFunction // A one-parameter function
+	Value          TokenType = iota // A literal value
+	Variable                        // A variable acting as a placeholder for a literal
+	LParen                          // Left parenthesis
+	RParen                          // Right parenthesis
+	Operator                        // A math operator
+	SingleFunction                  // A one-parameter function
 )
 
 // Data relating to a Keyword.
@@ -31,8 +34,9 @@ type MathGroup struct {
 	GetValue           func(string) (interface{}, bool)
 }
 
-// Constructor for MathGroup
 // TODO: Add verification for the three maps
+
+// Constructor for MathGroup
 func NewMathGroup(
 	keywordMap map[Keyword]KeywordData,
 	keywordStringMap map[string]Keyword,
@@ -47,17 +51,20 @@ func NewMathGroup(
 	}
 }
 
-// Operation precedence helper function for conversion from infix to postfix notation
-func (m *MathGroup) PushCurrentOp(prev Keyword, prevType TokenType, current Keyword) bool {
-	return prevType != SingleFunction && m.operatorPrecedence[current] > m.operatorPrecedence[prev]
+// Returns true if the current operator has a higher priority.
+func (m *MathGroup) HasHigherPriority(current Keyword, ref Keyword, refType TokenType) bool {
+	return refType != SingleFunction && m.operatorPrecedence[current] > m.operatorPrecedence[ref]
 }
 
+// Converts a keyword into its corresponding string.
 func (m *MathGroup) KeywordToString(keyword Keyword) (s string) {
 	if keywordData, exists := m.keywordMap[keyword]; exists {
 		return keywordData.Symbol
 	}
 	return ""
 }
+
+// Applies an operation or function on the given arguments.
 func (m *MathGroup) ApplyKeyword(keyword Keyword, args ...interface{}) interface{} {
 	return m.keywordMap[keyword].Apply(args...)
 }
