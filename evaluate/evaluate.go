@@ -1,4 +1,4 @@
-// Package used for evaluating expressions
+// Package evaluate is used for evaluating expressions
 package evaluate
 
 import (
@@ -12,11 +12,11 @@ import (
 // For now, assume there's only one variable
 // TODO: Finish implementation for any number of variables, and rethink output type.
 
-// Evaluates the given expression within the given domain.
+// Evaluate evaluates the given expression within the given domain.
 func Evaluate(expression parse.ParsedExpression, domain types.Interval, m *types.MathGroup) ([]interface{}, error) {
 	result := []interface{}{}
 	for current := domain.Start; current != nil; current = domain.NextValue(current) {
-		val, err := EvaluateOnce(expression, current, m)
+		val, err := Once(expression, current, m)
 		if err != nil {
 			return result, err
 		}
@@ -25,8 +25,8 @@ func Evaluate(expression parse.ParsedExpression, domain types.Interval, m *types
 	return result, nil
 }
 
-// Evaluates the given expression using a given variable under the context of the given mathematical group.
-func EvaluateOnce(expression parse.ParsedExpression, variable interface{}, m *types.MathGroup) (interface{}, error) {
+// Once evaluates the given expression using a given variable under the context of the given mathematical group.
+func Once(expression parse.ParsedExpression, variable interface{}, m *types.MathGroup) (interface{}, error) {
 	values := stack.New()
 	for _, t := range expression {
 		tokenType, keyword := m.StringToTokenType(t)

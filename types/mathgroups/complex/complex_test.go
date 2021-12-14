@@ -13,7 +13,7 @@ func equalEnough(a float64, b float64) bool {
 	return math.Abs(a-b) < MIN_THRESHOLD
 }
 
-func testMapValuesHelper(expression string, input complex.ComplexNumber, expected complex.ComplexNumber, t *testing.T) {
+func testMapValuesHelper(expression string, input complex.Number, expected complex.Number, t *testing.T) {
 	c, err := complex.MapValues(expression, *complex.NewComplexInterval(input, 1, input), "x")
 
 	if err != nil {
@@ -26,14 +26,14 @@ func testMapValuesHelper(expression string, input complex.ComplexNumber, expecte
 }
 
 func TestMapValues(t *testing.T) {
-	testMapValuesHelper("x + 2_3", complex.ComplexNumber{5, 4}, complex.ComplexNumber{7, 7}, t)
-	testMapValuesHelper("x - 2_3", complex.ComplexNumber{5, 4}, complex.ComplexNumber{3, 1}, t)
-	testMapValuesHelper("x * 2_3", complex.ComplexNumber{5, 4}, complex.ComplexNumber{-2, 23}, t)
-	testMapValuesHelper("x / 2_3", complex.ComplexNumber{5, 4}, complex.ComplexNumber{22. / 13., -7. / 13.}, t)
+	testMapValuesHelper("x + 2_3", complex.Number{5, 4}, complex.Number{7, 7}, t)
+	testMapValuesHelper("x - 2_3", complex.Number{5, 4}, complex.Number{3, 1}, t)
+	testMapValuesHelper("x * 2_3", complex.Number{5, 4}, complex.Number{-2, 23}, t)
+	testMapValuesHelper("x / 2_3", complex.Number{5, 4}, complex.Number{22. / 13., -7. / 13.}, t)
 
-	testMapValuesHelper("3 * 2_3", complex.ComplexNumber{0, 0}, complex.ComplexNumber{6, 9}, t)
-	testMapValuesHelper("3i * 2_3", complex.ComplexNumber{0, 0}, complex.ComplexNumber{-9, 6}, t)
+	testMapValuesHelper("3 * 2_3", complex.Number{0, 0}, complex.Number{6, 9}, t)
+	testMapValuesHelper("3i * 2_3", complex.Number{0, 0}, complex.Number{-9, 6}, t)
 
-	testMapValuesHelper("(3i + 2_3) * x", complex.ComplexNumber{3, 2}, complex.ComplexNumber{-6, 22}, t)
-	testMapValuesHelper("exp(i * x)", complex.ComplexNumber{math.Pi, 0}, complex.ComplexNumber{-1, 0}, t)
+	testMapValuesHelper("(3i + 2_3) * x", complex.Number{3, 2}, complex.Number{-6, 22}, t)
+	testMapValuesHelper("exp(i * x)", complex.Number{math.Pi, 0}, complex.Number{-1, 0}, t)
 }

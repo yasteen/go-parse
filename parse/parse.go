@@ -1,4 +1,4 @@
-// Package used for parsing expressions.
+// Package parse is used for parsing expressions.
 package parse
 
 import (
@@ -9,10 +9,10 @@ import (
 	"github.com/yasteen/go-parse/types"
 )
 
-// A valid equation in postfix notation
+// ParsedExpression represents a valid equation in infix or postfix notation
 type ParsedExpression []string
 
-// Returns a string with the next token.
+// GetNextTokenString returns a string with the next token.
 func GetNextTokenString(expression string, index int, m *types.MathGroup) (tokenString string, nextIndex int) {
 	tokenString = ""
 	for ; index < len(expression); index++ {
@@ -40,7 +40,7 @@ func GetNextTokenString(expression string, index int, m *types.MathGroup) (token
 	return tokenString, index
 }
 
-// Verifies whether each token is valid with reference to its neighbours.
+// IsLocallyValid verifies whether each token is valid with reference to its neighbours.
 func IsLocallyValid(tokens []string, m *types.MathGroup) (bool, int) {
 	currentCharLength := 0
 	if len(tokens) == 0 {
@@ -102,7 +102,7 @@ func parseExpression(expression string, m *types.MathGroup) (ParsedExpression, e
 	return tokens, nil
 }
 
-// Converts a ParsedExpression from infix notation to postfix notation.
+// ToPostfix converts a ParsedExpression from infix notation to postfix notation.
 // This change to postfix is useful for slightly optimizing speed in repeated calculations.
 func ToPostfix(tokens ParsedExpression, m *types.MathGroup) (ParsedExpression, error) {
 	output := ParsedExpression([]string{})
@@ -157,7 +157,7 @@ func ToPostfix(tokens ParsedExpression, m *types.MathGroup) (ParsedExpression, e
 	return output, nil
 }
 
-// Takes in the expression given, and parses it into in postfix form.
+// Parse takes in the expression given, and parses it into in postfix form.
 // This expression can be used in the evaluate module.
 func Parse(expression string, variableName string, m *types.MathGroup) (ParsedExpression, error) {
 	tokens, err := parseExpression(expression, m)
