@@ -1,3 +1,4 @@
+// Package main: A simple interface for evaluating expressions.
 package main
 
 import (
