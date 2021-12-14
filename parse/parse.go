@@ -1,6 +1,8 @@
+// Package used for parsing expressions.
 package parse
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/karalabe/cookiejar/collections/stack"
@@ -38,7 +40,8 @@ func GetNextTokenString(expression string, index int, m *types.MathGroup) (token
 	return tokenString, index
 }
 
-func IsValidExpression(tokens []string, m *types.MathGroup) (bool, int) {
+// Verifies whether each token is valid with reference to its neighbours.
+func IsLocallyValid(tokens []string, m *types.MathGroup) (bool, int) {
 	currentCharLength := 0
 	if len(tokens) == 0 {
 		return true, currentCharLength
@@ -75,29 +78,33 @@ func IsValidExpression(tokens []string, m *types.MathGroup) (bool, int) {
 	return validEnd, currentCharLength
 }
 
-func assertVariableTokensAreValid(tokens []string, variableName string, m *types.MathGroup) {
+// Returns true if all tokens classified as a variable match the given variable namea variable match the given variable name.
+func areTokensValid(tokens []string, variableName string, m *types.MathGroup) (bool, string) {
 	for _, t := range tokens {
 		tokenType, _ := m.StringToTokenType(t)
 		if tokenType == types.Variable {
 			if t != variableName {
-				panic("Token " + t + " is not recognized.")
+				return false, t
 			}
 		}
 	}
+	return true, ""
 }
 
-func parseExpression(expression string, m *types.MathGroup) ParsedExpression {
+// Converts an expression into a list of strings, split by token.
+func parseExpression(expression string, m *types.MathGroup) (ParsedExpression, error) {
 	tokens := ParsedExpression([]string{})
 	for i := 0; i < len(expression); {
 		tokenString, nextIndex := GetNextTokenString(expression, i, m)
 		tokens = append(tokens, tokenString)
 		i = nextIndex
 	}
-	return tokens
+	return tokens, nil
 }
 
-// Change to postfix for slight increase in speed for repeated calculations
-func ToPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
+// Converts a ParsedExpression from infix notation to postfix notation.
+// This change to postfix is useful for slightly optimizing speed in repeated calculations.
+func ToPostfix(tokens ParsedExpression, m *types.MathGroup) (ParsedExpression, error) {
 	output := ParsedExpression([]string{})
 	operations := stack.New()
 
@@ -113,7 +120,7 @@ func ToPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 		case types.Operator:
 			for operations.Size() > 0 {
 				prevType, prevKeyWord := m.StringToTokenType(operations.Top().(string))
-				if prevType == types.LParen || m.PushCurrentOp(prevKeyWord, prevType, keyword) {
+				if prevType == types.LParen || m.HasHigherPriority(keyword, prevKeyWord, prevType) {
 					break
 				}
 				output = append(output, operations.Pop().(string))
@@ -133,7 +140,7 @@ func ToPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 				output = append(output, prevTokenString)
 			}
 			if !foundMatchingParen {
-				panic("Expression has unmatched parentheses.")
+				return nil, errors.New("expression has unmatched parentheses")
 			}
 		}
 	}
@@ -141,19 +148,31 @@ func ToPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 		prevTokenString := operations.Pop().(string)
 		prevType, _ := m.StringToTokenType(prevTokenString)
 		if prevType == types.LParen {
-			panic("Expression has unmatched parentheses.")
+			println("Bye")
+			return nil, errors.New("expression has unmatched parentheses")
 		}
 		output = append(output, prevTokenString)
 	}
 
-	return output
+	return output, nil
 }
 
-func Parse(expression string, variableName string, m *types.MathGroup) ParsedExpression {
-	tokens := parseExpression(expression, m)
-	assertVariableTokensAreValid(tokens, variableName, m)
-	if isValid, i := IsValidExpression(tokens, m); !isValid {
-		panic("Expression is not valid\n" + expression + strings.Repeat(" ", i) + "^")
+// Takes in the expression given, and parses it into in postfix form.
+// This expression can be used in the evaluate module.
+func Parse(expression string, variableName string, m *types.MathGroup) (ParsedExpression, error) {
+	tokens, err := parseExpression(expression, m)
+	if err != nil {
+		return nil, err
 	}
-	return ToPostfix(tokens, m)
+	if valid, t := areTokensValid(tokens, variableName, m); !valid {
+		return nil, errors.New("Token " + t + " is not recognized.")
+	}
+	if isValid, i := IsLocallyValid(tokens, m); !isValid {
+		return nil, errors.New("Expression is not valid\n" + expression + strings.Repeat(" ", i) + "^")
+	}
+	finalExpr, err := ToPostfix(tokens, m)
+	if err != nil {
+		return nil, err
+	}
+	return finalExpr, nil
 }

@@ -26,7 +26,7 @@ func main() {
 	fmt.Println("Read value", val)
 
 	if err != nil {
-		panic("Bad values :(")
+		fmt.Println("Bad values :(")
 	}
 
 	fmt.Println(real.MapValues(expression, *real.NewRealInterval(val, 2, val+1), "x"))

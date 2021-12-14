@@ -1,3 +1,4 @@
+// An implementation of the real number system with common operators and functions
 package real
 
 import (
@@ -97,8 +98,10 @@ func getReal(s string) (interface{}, bool) {
 	return 0, false
 }
 
+// The real number system (float64) and some defined operations/functions
 var Real = types.NewMathGroup(realTokenMap, realStringToToken, realOperatorPrecedence, getReal)
 
+// Constructs a new real interval.
 func NewRealInterval(start float64, step float64, end float64) *types.Interval {
 	if step == 0 || start > end {
 		panic("Invalid interval")
@@ -117,12 +120,19 @@ func NewRealInterval(start float64, step float64, end float64) *types.Interval {
 	}
 }
 
-func MapValues(expression string, interval types.Interval, varName string) []float64 {
-	parsedExpression := parse.Parse(expression, varName, Real)
-	result := evaluate.Evaluate(parsedExpression, interval, Real)
+// Evaluates an expression for all real values specified by the interval.
+func MapValues(expression string, interval types.Interval, varName string) ([]float64, error) {
+	parsedExpression, err := parse.Parse(expression, varName, Real)
+	if err != nil {
+		return nil, err
+	}
+	result, err := evaluate.Evaluate(parsedExpression, interval, Real)
+	if err != nil {
+		return nil, err
+	}
 	ret := []float64{}
 	for _, val := range result {
 		ret = append(ret, val.(float64))
 	}
-	return ret
+	return ret, nil
 }
