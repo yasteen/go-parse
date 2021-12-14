@@ -14,7 +14,12 @@ func equalEnough(a float64, b float64) bool {
 }
 
 func testMapValuesHelper(expression string, input complex.ComplexNumber, expected complex.ComplexNumber, t *testing.T) {
-	c := complex.MapValues(expression, *complex.NewComplexInterval(input, 1, input), "x")
+	c, err := complex.MapValues(expression, *complex.NewComplexInterval(input, 1, input), "x")
+
+	if err != nil {
+		t.Error(err)
+	}
+
 	if !equalEnough(c[0].Re, expected.Re) || !equalEnough(c[0].Im, expected.Im) {
 		t.Error("Failed addition on expression", expression, "- Expected:", expected, "Got:", c[0])
 	}

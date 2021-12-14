@@ -211,12 +211,18 @@ func NewComplexInterval(start ComplexNumber, step float64, end ComplexNumber) *t
 	}
 }
 
-func MapValues(expression string, interval types.Interval, varName string) []ComplexNumber {
-	parsedExpression := parse.Parse(expression, varName, Complex)
-	result := evaluate.Evaluate(parsedExpression, interval, Complex)
+func MapValues(expression string, interval types.Interval, varName string) ([]ComplexNumber, error) {
+	parsedExpression, err := parse.Parse(expression, varName, Complex)
+	if err != nil {
+		return nil, err
+	}
+	result, err := evaluate.Evaluate(parsedExpression, interval, Complex)
+	if err != nil {
+		return nil, err
+	}
 	ret := []ComplexNumber{}
 	for _, val := range result {
 		ret = append(ret, val.(ComplexNumber))
 	}
-	return ret
+	return ret, nil
 }

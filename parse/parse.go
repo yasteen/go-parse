@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/karalabe/cookiejar/collections/stack"
@@ -38,7 +39,8 @@ func GetNextTokenString(expression string, index int, m *types.MathGroup) (token
 	return tokenString, index
 }
 
-func IsValidExpression(tokens []string, m *types.MathGroup) (bool, int) {
+// Verifies whether each token is valid with reference to its neighbours.
+func IsLocallyValid(tokens []string, m *types.MathGroup) (bool, int) {
 	currentCharLength := 0
 	if len(tokens) == 0 {
 		return true, currentCharLength
@@ -75,29 +77,32 @@ func IsValidExpression(tokens []string, m *types.MathGroup) (bool, int) {
 	return validEnd, currentCharLength
 }
 
-func assertVariableTokensAreValid(tokens []string, variableName string, m *types.MathGroup) {
+// Ensure that the only thing that isn't a token or a value must be a variable.
+func areTokensValid(tokens []string, variableName string, m *types.MathGroup) (bool, string) {
 	for _, t := range tokens {
 		tokenType, _ := m.StringToTokenType(t)
 		if tokenType == types.Variable {
 			if t != variableName {
-				panic("Token " + t + " is not recognized.")
+				return false, t
 			}
 		}
 	}
+	return true, ""
 }
 
-func parseExpression(expression string, m *types.MathGroup) ParsedExpression {
+// Parse equation into list of strings
+func parseExpression(expression string, m *types.MathGroup) (ParsedExpression, error) {
 	tokens := ParsedExpression([]string{})
 	for i := 0; i < len(expression); {
 		tokenString, nextIndex := GetNextTokenString(expression, i, m)
 		tokens = append(tokens, tokenString)
 		i = nextIndex
 	}
-	return tokens
+	return tokens, nil
 }
 
 // Change to postfix for slight increase in speed for repeated calculations
-func ToPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
+func ToPostfix(tokens ParsedExpression, m *types.MathGroup) (ParsedExpression, error) {
 	output := ParsedExpression([]string{})
 	operations := stack.New()
 
@@ -133,7 +138,7 @@ func ToPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 				output = append(output, prevTokenString)
 			}
 			if !foundMatchingParen {
-				panic("Expression has unmatched parentheses.")
+				return nil, errors.New("expression has unmatched parentheses")
 			}
 		}
 	}
@@ -141,19 +146,29 @@ func ToPostfix(tokens ParsedExpression, m *types.MathGroup) ParsedExpression {
 		prevTokenString := operations.Pop().(string)
 		prevType, _ := m.StringToTokenType(prevTokenString)
 		if prevType == types.LParen {
-			panic("Expression has unmatched parentheses.")
+			println("Bye")
+			return nil, errors.New("expression has unmatched parentheses")
 		}
 		output = append(output, prevTokenString)
 	}
 
-	return output
+	return output, nil
 }
 
-func Parse(expression string, variableName string, m *types.MathGroup) ParsedExpression {
-	tokens := parseExpression(expression, m)
-	assertVariableTokensAreValid(tokens, variableName, m)
-	if isValid, i := IsValidExpression(tokens, m); !isValid {
-		panic("Expression is not valid\n" + expression + strings.Repeat(" ", i) + "^")
+func Parse(expression string, variableName string, m *types.MathGroup) (ParsedExpression, error) {
+	tokens, err := parseExpression(expression, m)
+	if err != nil {
+		return nil, err
 	}
-	return ToPostfix(tokens, m)
+	if valid, t := areTokensValid(tokens, variableName, m); !valid {
+		return nil, errors.New("Token " + t + " is not recognized.")
+	}
+	if isValid, i := IsLocallyValid(tokens, m); !isValid {
+		return nil, errors.New("Expression is not valid\n" + expression + strings.Repeat(" ", i) + "^")
+	}
+	finalExpr, err := ToPostfix(tokens, m)
+	if err != nil {
+		return nil, err
+	}
+	return finalExpr, nil
 }
