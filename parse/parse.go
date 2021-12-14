@@ -1,3 +1,4 @@
+// Package used for parsing expressions.
 package parse
 
 import (
@@ -77,7 +78,7 @@ func IsLocallyValid(tokens []string, m *types.MathGroup) (bool, int) {
 	return validEnd, currentCharLength
 }
 
-// Ensure that the only thing that isn't a token or a value must be a variable.
+// Returns true if all tokens classified as a variable match the given variable namea variable match the given variable name.
 func areTokensValid(tokens []string, variableName string, m *types.MathGroup) (bool, string) {
 	for _, t := range tokens {
 		tokenType, _ := m.StringToTokenType(t)
@@ -90,7 +91,7 @@ func areTokensValid(tokens []string, variableName string, m *types.MathGroup) (b
 	return true, ""
 }
 
-// Parse equation into list of strings
+// Converts an expression into a list of strings, split by token.
 func parseExpression(expression string, m *types.MathGroup) (ParsedExpression, error) {
 	tokens := ParsedExpression([]string{})
 	for i := 0; i < len(expression); {
@@ -101,7 +102,8 @@ func parseExpression(expression string, m *types.MathGroup) (ParsedExpression, e
 	return tokens, nil
 }
 
-// Change to postfix for slight increase in speed for repeated calculations
+// Converts a ParsedExpression from infix notation to postfix notation.
+// This change to postfix is useful for slightly optimizing speed in repeated calculations.
 func ToPostfix(tokens ParsedExpression, m *types.MathGroup) (ParsedExpression, error) {
 	output := ParsedExpression([]string{})
 	operations := stack.New()
@@ -118,7 +120,7 @@ func ToPostfix(tokens ParsedExpression, m *types.MathGroup) (ParsedExpression, e
 		case types.Operator:
 			for operations.Size() > 0 {
 				prevType, prevKeyWord := m.StringToTokenType(operations.Top().(string))
-				if prevType == types.LParen || m.PushCurrentOp(prevKeyWord, prevType, keyword) {
+				if prevType == types.LParen || m.HasHigherPriority(keyword, prevKeyWord, prevType) {
 					break
 				}
 				output = append(output, operations.Pop().(string))
@@ -155,6 +157,8 @@ func ToPostfix(tokens ParsedExpression, m *types.MathGroup) (ParsedExpression, e
 	return output, nil
 }
 
+// Takes in the expression given, and parses it into in postfix form.
+// This expression can be used in the evaluate module.
 func Parse(expression string, variableName string, m *types.MathGroup) (ParsedExpression, error) {
 	tokens, err := parseExpression(expression, m)
 	if err != nil {

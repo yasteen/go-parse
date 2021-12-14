@@ -1,3 +1,4 @@
+// An implementation of the complex number system with common operators and functions
 package complex
 
 import (
@@ -42,19 +43,19 @@ func cartesianToPolar(re float64, im float64) (mod float64, arg float64) {
 	return mod, arg
 }
 
-func OpAdd(params ...interface{}) interface{} {
+func opAdd(params ...interface{}) interface{} {
 	return ComplexNumber{
 		Re: params[0].(ComplexNumber).Re + params[1].(ComplexNumber).Re,
 		Im: params[0].(ComplexNumber).Im + params[1].(ComplexNumber).Im,
 	}
 }
-func OpSubtract(params ...interface{}) interface{} {
+func opSubtract(params ...interface{}) interface{} {
 	return ComplexNumber{
 		Re: params[0].(ComplexNumber).Re - params[1].(ComplexNumber).Re,
 		Im: params[0].(ComplexNumber).Im - params[1].(ComplexNumber).Im,
 	}
 }
-func OpMultiply(params ...interface{}) interface{} {
+func opMultiply(params ...interface{}) interface{} {
 	xr := params[0].(ComplexNumber).Re
 	xi := params[0].(ComplexNumber).Im
 	yr := params[1].(ComplexNumber).Re
@@ -64,7 +65,7 @@ func OpMultiply(params ...interface{}) interface{} {
 		Im: xr*yi + xi*yr,
 	}
 }
-func OpDivide(params ...interface{}) interface{} {
+func opDivide(params ...interface{}) interface{} {
 	xr := params[0].(ComplexNumber).Re
 	xi := params[0].(ComplexNumber).Im
 	yr := params[1].(ComplexNumber).Re
@@ -78,7 +79,7 @@ func OpDivide(params ...interface{}) interface{} {
 		Im: (xi*yr - xr*yi) / (yr*yr + yi*yi),
 	}
 }
-func FnLog(params ...interface{}) interface{} {
+func fnLog(params ...interface{}) interface{} {
 	re := params[0].(ComplexNumber).Re
 	im := params[0].(ComplexNumber).Im
 	mod, arg := cartesianToPolar(re, im)
@@ -87,7 +88,7 @@ func FnLog(params ...interface{}) interface{} {
 		Im: arg,
 	}
 }
-func FnExp(params ...interface{}) interface{} {
+func fnExp(params ...interface{}) interface{} {
 	re := params[0].(ComplexNumber).Re
 	im := params[0].(ComplexNumber).Im
 	exp := math.Exp(re)
@@ -96,21 +97,21 @@ func FnExp(params ...interface{}) interface{} {
 		Im: exp * math.Sin(im),
 	}
 }
-func FnSin(params ...interface{}) interface{} {
+func fnSin(params ...interface{}) interface{} {
 	re := params[0].(ComplexNumber).Re
 	im := params[1].(ComplexNumber).Im
-	first := FnExp(ComplexNumber{-im, re}).(ComplexNumber)  // e^(iz)
-	second := FnExp(ComplexNumber{im, -re}).(ComplexNumber) // e^(-iz)
+	first := fnExp(ComplexNumber{-im, re}).(ComplexNumber)  // e^(iz)
+	second := fnExp(ComplexNumber{im, -re}).(ComplexNumber) // e^(-iz)
 	return ComplexNumber{
 		Re: (first.Im - second.Im) / 2,
 		Im: (second.Re - first.Re) / 2,
 	}
 }
-func FnCos(params ...interface{}) interface{} {
+func fnCos(params ...interface{}) interface{} {
 	re := params[0].(ComplexNumber).Re
 	im := params[1].(ComplexNumber).Im
-	first := FnExp(ComplexNumber{-im, re}).(ComplexNumber)  // e^(iz)
-	second := FnExp(ComplexNumber{im, -re}).(ComplexNumber) // e^(-iz)
+	first := fnExp(ComplexNumber{-im, re}).(ComplexNumber)  // e^(iz)
+	second := fnExp(ComplexNumber{im, -re}).(ComplexNumber) // e^(-iz)
 	return ComplexNumber{
 		Re: (first.Re - second.Re) / 2,
 		Im: (first.Im - second.Im) / 2,
@@ -118,24 +119,24 @@ func FnCos(params ...interface{}) interface{} {
 }
 
 var complexTokenMap = map[types.Keyword]types.KeywordData{
-	Add:      {Symbol: "+", TokenType: types.Operator, Apply: OpAdd},
-	Subtract: {Symbol: "-", TokenType: types.Operator, Apply: OpSubtract},
-	Multiply: {Symbol: "*", TokenType: types.Operator, Apply: OpMultiply},
-	Divide:   {Symbol: "/", TokenType: types.Operator, Apply: OpDivide},
+	Add:      {Symbol: "+", TokenType: types.Operator, Apply: opAdd},
+	Subtract: {Symbol: "-", TokenType: types.Operator, Apply: opSubtract},
+	Multiply: {Symbol: "*", TokenType: types.Operator, Apply: opMultiply},
+	Divide:   {Symbol: "/", TokenType: types.Operator, Apply: opDivide},
 	Power: {Symbol: "^", TokenType: types.Operator,
 		Apply: func(params ...interface{}) interface{} {
-			return FnExp(OpMultiply(params[1], FnLog(params[0])))
+			return fnExp(opMultiply(params[1], fnLog(params[0])))
 		},
 	},
-	Sin: {Symbol: "sin", TokenType: types.SingleFunction, Apply: FnSin},
-	Cos: {Symbol: "cos", TokenType: types.SingleFunction, Apply: FnCos},
+	Sin: {Symbol: "sin", TokenType: types.SingleFunction, Apply: fnSin},
+	Cos: {Symbol: "cos", TokenType: types.SingleFunction, Apply: fnCos},
 	Tan: {Symbol: "tan", TokenType: types.SingleFunction,
 		Apply: func(params ...interface{}) interface{} {
-			return OpDivide(FnSin(params[0]), FnCos(params[0]))
+			return opDivide(fnSin(params[0]), fnCos(params[0]))
 		},
 	},
-	Log: {Symbol: "log", TokenType: types.SingleFunction, Apply: FnLog},
-	Exp: {Symbol: "exp", TokenType: types.SingleFunction, Apply: FnExp},
+	Log: {Symbol: "log", TokenType: types.SingleFunction, Apply: fnLog},
+	Exp: {Symbol: "exp", TokenType: types.SingleFunction, Apply: fnExp},
 }
 
 var complexStringToToken = map[string]types.Keyword{
@@ -185,8 +186,10 @@ func getComplex(s string) (interface{}, bool) {
 	return 0, false
 }
 
+// The complex number system (float64, float64) and some defined operations/functions
 var Complex = types.NewMathGroup(complexTokenMap, complexStringToToken, complexOperatorPrecedence, getComplex)
 
+// Constructs a new complex interval (top right to bottom left corner in Cartesian form)
 func NewComplexInterval(start ComplexNumber, step float64, end ComplexNumber) *types.Interval {
 	if step == 0 || (start.Re < end.Re || start.Im < end.Im) {
 		panic("Invalid Interval")
@@ -211,6 +214,7 @@ func NewComplexInterval(start ComplexNumber, step float64, end ComplexNumber) *t
 	}
 }
 
+// Evaluates an expression for all complex values specified by the interval.
 func MapValues(expression string, interval types.Interval, varName string) ([]ComplexNumber, error) {
 	parsedExpression, err := parse.Parse(expression, varName, Complex)
 	if err != nil {
