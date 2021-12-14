@@ -31,7 +31,7 @@ func TestEvaluateOnce(t *testing.T) {
 }
 
 func testEvaluateOnceHelper(expression parse.ParsedExpression, variable float64, expected float64, t *testing.T) {
-	value, err := evaluate.EvaluateOnce(expression, variable, real.Real)
+	value, err := evaluate.Once(expression, variable, real.Real)
 
 	if err != nil {
 		t.Error(err)

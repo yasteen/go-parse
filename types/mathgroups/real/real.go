@@ -1,4 +1,4 @@
-// An implementation of the real number system with common operators and functions
+// Package real is an implementation of the real number system with common operators and functions.
 package real
 
 import (
@@ -10,6 +10,7 @@ import (
 	"github.com/yasteen/go-parse/types"
 )
 
+// Common functions and operations defined for the real group
 const (
 	Add types.Keyword = iota
 	Subtract
@@ -98,10 +99,10 @@ func getReal(s string) (interface{}, bool) {
 	return 0, false
 }
 
-// The real number system (float64) and some defined operations/functions
+// Real represents real number system (float64) and some defined operations/functions
 var Real = types.NewMathGroup(realTokenMap, realStringToToken, realOperatorPrecedence, getReal)
 
-// Constructs a new real interval.
+// NewRealInterval constructs a new real interval.
 func NewRealInterval(start float64, step float64, end float64) *types.Interval {
 	if step == 0 || start > end {
 		panic("Invalid interval")
@@ -120,7 +121,7 @@ func NewRealInterval(start float64, step float64, end float64) *types.Interval {
 	}
 }
 
-// Evaluates an expression for all real values specified by the interval.
+// MapValues evaluates an expression for all real values specified by the interval.
 func MapValues(expression string, interval types.Interval, varName string) ([]float64, error) {
 	parsedExpression, err := parse.Parse(expression, varName, Real)
 	if err != nil {

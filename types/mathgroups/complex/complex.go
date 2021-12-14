@@ -1,4 +1,4 @@
-// An implementation of the complex number system with common operators and functions
+// Package complex is an implementation of the complex number system with common operators and functions.
 package complex
 
 import (
@@ -11,11 +11,13 @@ import (
 	"github.com/yasteen/go-parse/types"
 )
 
-type ComplexNumber struct {
+// Number is a struct representing the real and imaginary parts of a complex number
+type Number struct {
 	Re float64
 	Im float64
 }
 
+// Common functions and operations defined for the real group
 const (
 	Add types.Keyword = iota
 	Subtract
@@ -44,75 +46,75 @@ func cartesianToPolar(re float64, im float64) (mod float64, arg float64) {
 }
 
 func opAdd(params ...interface{}) interface{} {
-	return ComplexNumber{
-		Re: params[0].(ComplexNumber).Re + params[1].(ComplexNumber).Re,
-		Im: params[0].(ComplexNumber).Im + params[1].(ComplexNumber).Im,
+	return Number{
+		Re: params[0].(Number).Re + params[1].(Number).Re,
+		Im: params[0].(Number).Im + params[1].(Number).Im,
 	}
 }
 func opSubtract(params ...interface{}) interface{} {
-	return ComplexNumber{
-		Re: params[0].(ComplexNumber).Re - params[1].(ComplexNumber).Re,
-		Im: params[0].(ComplexNumber).Im - params[1].(ComplexNumber).Im,
+	return Number{
+		Re: params[0].(Number).Re - params[1].(Number).Re,
+		Im: params[0].(Number).Im - params[1].(Number).Im,
 	}
 }
 func opMultiply(params ...interface{}) interface{} {
-	xr := params[0].(ComplexNumber).Re
-	xi := params[0].(ComplexNumber).Im
-	yr := params[1].(ComplexNumber).Re
-	yi := params[1].(ComplexNumber).Im
-	return ComplexNumber{
+	xr := params[0].(Number).Re
+	xi := params[0].(Number).Im
+	yr := params[1].(Number).Re
+	yi := params[1].(Number).Im
+	return Number{
 		Re: xr*yr - xi*yi,
 		Im: xr*yi + xi*yr,
 	}
 }
 func opDivide(params ...interface{}) interface{} {
-	xr := params[0].(ComplexNumber).Re
-	xi := params[0].(ComplexNumber).Im
-	yr := params[1].(ComplexNumber).Re
-	yi := params[1].(ComplexNumber).Im
+	xr := params[0].(Number).Re
+	xi := params[0].(Number).Im
+	yr := params[1].(Number).Re
+	yi := params[1].(Number).Im
 	if yr == 0 && yi == 0 {
 		// TODO: Handle division by 0
 		panic("Attempted division by 0")
 	}
-	return ComplexNumber{
+	return Number{
 		Re: (xr*yr + xi*yi) / (yr*yr + yi*yi),
 		Im: (xi*yr - xr*yi) / (yr*yr + yi*yi),
 	}
 }
 func fnLog(params ...interface{}) interface{} {
-	re := params[0].(ComplexNumber).Re
-	im := params[0].(ComplexNumber).Im
+	re := params[0].(Number).Re
+	im := params[0].(Number).Im
 	mod, arg := cartesianToPolar(re, im)
-	return ComplexNumber{
+	return Number{
 		Re: math.Log(mod),
 		Im: arg,
 	}
 }
 func fnExp(params ...interface{}) interface{} {
-	re := params[0].(ComplexNumber).Re
-	im := params[0].(ComplexNumber).Im
+	re := params[0].(Number).Re
+	im := params[0].(Number).Im
 	exp := math.Exp(re)
-	return ComplexNumber{
+	return Number{
 		Re: exp * math.Cos(im),
 		Im: exp * math.Sin(im),
 	}
 }
 func fnSin(params ...interface{}) interface{} {
-	re := params[0].(ComplexNumber).Re
-	im := params[1].(ComplexNumber).Im
-	first := fnExp(ComplexNumber{-im, re}).(ComplexNumber)  // e^(iz)
-	second := fnExp(ComplexNumber{im, -re}).(ComplexNumber) // e^(-iz)
-	return ComplexNumber{
+	re := params[0].(Number).Re
+	im := params[1].(Number).Im
+	first := fnExp(Number{-im, re}).(Number)  // e^(iz)
+	second := fnExp(Number{im, -re}).(Number) // e^(-iz)
+	return Number{
 		Re: (first.Im - second.Im) / 2,
 		Im: (second.Re - first.Re) / 2,
 	}
 }
 func fnCos(params ...interface{}) interface{} {
-	re := params[0].(ComplexNumber).Re
-	im := params[1].(ComplexNumber).Im
-	first := fnExp(ComplexNumber{-im, re}).(ComplexNumber)  // e^(iz)
-	second := fnExp(ComplexNumber{im, -re}).(ComplexNumber) // e^(-iz)
-	return ComplexNumber{
+	re := params[0].(Number).Re
+	im := params[1].(Number).Im
+	first := fnExp(Number{-im, re}).(Number)  // e^(iz)
+	second := fnExp(Number{im, -re}).(Number) // e^(-iz)
+	return Number{
 		Re: (first.Re - second.Re) / 2,
 		Im: (first.Im - second.Im) / 2,
 	}
@@ -167,30 +169,30 @@ func getComplex(s string) (interface{}, bool) {
 			re, err := strconv.ParseFloat(nums[0], 64)
 			im, err2 := strconv.ParseFloat(nums[1], 64)
 			if err == nil && err2 == nil {
-				return ComplexNumber{re, im}, true
+				return Number{re, im}, true
 			}
 		}
 		return 0, false
 	}
 	if num, err := strconv.ParseFloat(s, 64); err == nil {
-		return ComplexNumber{num, 0}, true
+		return Number{num, 0}, true
 	}
 	if s == "i" {
-		return ComplexNumber{0, 1}, true
+		return Number{0, 1}, true
 	}
 	if len(s) != 0 && s[len(s)-1] == 'i' {
 		if num, err := strconv.ParseFloat(s[:len(s)-1], 64); err == nil {
-			return ComplexNumber{0, num}, true
+			return Number{0, num}, true
 		}
 	}
 	return 0, false
 }
 
-// The complex number system (float64, float64) and some defined operations/functions
+// Complex represents the complex number system (float64, float64) and some defined operations/functions
 var Complex = types.NewMathGroup(complexTokenMap, complexStringToToken, complexOperatorPrecedence, getComplex)
 
-// Constructs a new complex interval (top right to bottom left corner in Cartesian form)
-func NewComplexInterval(start ComplexNumber, step float64, end ComplexNumber) *types.Interval {
+// NewComplexInterval constructs a new complex interval (top right to bottom left corner in Cartesian form)
+func NewComplexInterval(start Number, step float64, end Number) *types.Interval {
 	if step == 0 || (start.Re < end.Re || start.Im < end.Im) {
 		panic("Invalid Interval")
 	}
@@ -199,23 +201,23 @@ func NewComplexInterval(start ComplexNumber, step float64, end ComplexNumber) *t
 		Step:  step,
 		End:   end,
 		Next: func(cur interface{}) interface{} {
-			nextRe := cur.(ComplexNumber).Re + step
-			nextIm := cur.(ComplexNumber).Im
+			nextRe := cur.(Number).Re + step
+			nextIm := cur.(Number).Im
 			if nextRe > end.Re {
 				nextRe = start.Re
 				nextIm += step
 				if nextIm > end.Im {
 					return nil
 				}
-				return ComplexNumber{nextRe, nextIm}
+				return Number{nextRe, nextIm}
 			}
-			return ComplexNumber{nextRe, nextIm}
+			return Number{nextRe, nextIm}
 		},
 	}
 }
 
-// Evaluates an expression for all complex values specified by the interval.
-func MapValues(expression string, interval types.Interval, varName string) ([]ComplexNumber, error) {
+// MapValues evaluates an expression for all complex values specified by the interval.
+func MapValues(expression string, interval types.Interval, varName string) ([]Number, error) {
 	parsedExpression, err := parse.Parse(expression, varName, Complex)
 	if err != nil {
 		return nil, err
@@ -224,9 +226,9 @@ func MapValues(expression string, interval types.Interval, varName string) ([]Co
 	if err != nil {
 		return nil, err
 	}
-	ret := []ComplexNumber{}
+	ret := []Number{}
 	for _, val := range result {
-		ret = append(ret, val.(ComplexNumber))
+		ret = append(ret, val.(Number))
 	}
 	return ret, nil
 }
