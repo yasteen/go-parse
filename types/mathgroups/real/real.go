@@ -122,7 +122,7 @@ func NewRealInterval(start float64, step float64, end float64) *types.Interval {
 }
 
 // MapValues evaluates an expression for all real values specified by the interval.
-func MapValues(expression string, interval types.Interval, varName string) ([]float64, error) {
+func MapValues(expression string, interval types.Interval, varName string) ([]interface{}, error) {
 	parsedExpression, err := parse.Parse(expression, varName, Real)
 	if err != nil {
 		return nil, err
@@ -131,9 +131,5 @@ func MapValues(expression string, interval types.Interval, varName string) ([]fl
 	if err != nil {
 		return nil, err
 	}
-	ret := []float64{}
-	for _, val := range result {
-		ret = append(ret, val.(float64))
-	}
-	return ret, nil
+	return result, nil
 }

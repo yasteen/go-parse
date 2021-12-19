@@ -217,7 +217,7 @@ func NewComplexInterval(start Number, step float64, end Number) *types.Interval 
 }
 
 // MapValues evaluates an expression for all complex values specified by the interval.
-func MapValues(expression string, interval types.Interval, varName string) ([]Number, error) {
+func MapValues(expression string, interval types.Interval, varName string) ([]interface{}, error) {
 	parsedExpression, err := parse.Parse(expression, varName, Complex)
 	if err != nil {
 		return nil, err
@@ -226,9 +226,5 @@ func MapValues(expression string, interval types.Interval, varName string) ([]Nu
 	if err != nil {
 		return nil, err
 	}
-	ret := []Number{}
-	for _, val := range result {
-		ret = append(ret, val.(Number))
-	}
-	return ret, nil
+	return result, nil
 }
