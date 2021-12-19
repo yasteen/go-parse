@@ -20,7 +20,7 @@ func testMapValuesHelper(expression string, input complex.Number, expected compl
 		t.Error(err)
 	}
 
-	if !equalEnough(c[0].Re, expected.Re) || !equalEnough(c[0].Im, expected.Im) {
+	if !equalEnough(c[0].(complex.Number).Re, expected.Re) || !equalEnough(c[0].(complex.Number).Im, expected.Im) {
 		t.Error("Failed addition on expression", expression, "- Expected:", expected, "Got:", c[0])
 	}
 }
