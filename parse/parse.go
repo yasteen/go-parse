@@ -168,7 +168,7 @@ func Parse(expression string, variableName string, m *types.MathGroup) (ParsedEx
 		return nil, errors.New("Token " + t + " is not recognized.")
 	}
 	if isValid, i := IsLocallyValid(tokens, m); !isValid {
-		return nil, errors.New("Expression is not valid\n" + expression + strings.Repeat(" ", i) + "^")
+		return nil, errors.New("Expression is not valid\n" + expression + "\n" + strings.Repeat(" ", i) + "^")
 	}
 	finalExpr, err := ToPostfix(tokens, m)
 	if err != nil {
