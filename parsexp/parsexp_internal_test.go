@@ -1,4 +1,4 @@
-package parse_test
+package parsexp_test
 
 import (
 	"errors"
@@ -7,15 +7,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/yasteen/go-parse/parse"
-	"github.com/yasteen/go-parse/types/mathgroups/real"
+	"github.com/yasteen/go-parse/mathgroups/real"
+	"github.com/yasteen/go-parse/parsexp"
 )
 
 func testGetNextTokenStringHelper(input string, expected []string, t *testing.T) {
 	curStringIndex := 0
 	for i := 0; i < len(input); {
 		var tokenString string
-		tokenString, i = parse.GetNextTokenString(input, i, real.Real)
+		tokenString, i = parsexp.GetNextTokenString(input, i, real.Real)
 		if curStringIndex >= len(expected) {
 			t.Errorf("Test for '%s' produced too many tokens.", input)
 		}
@@ -31,7 +31,7 @@ func TestGetNextTokenWithString(t *testing.T) {
 }
 
 func testIsLocallyValidHelper(input []string, expected bool, t *testing.T) {
-	if isValid, i := parse.IsLocallyValid(input, real.Real); isValid != expected {
+	if isValid, i := parsexp.IsLocallyValid(input, real.Real); isValid != expected {
 		str := ""
 		for _, s := range input {
 			str += s
@@ -60,7 +60,7 @@ func TestIsLocallyValid(t *testing.T) {
 }
 
 func testToPostfixHelper(input []string, expected []string, unmatchedParen bool) error {
-	output, err := parse.ToPostfix(input, real.Real)
+	output, err := parsexp.ToPostfix(input, real.Real)
 
 	if unmatchedParen {
 		if err == nil {

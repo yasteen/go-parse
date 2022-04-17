@@ -20,30 +20,30 @@ const (
 // KeywordData represents data relating to a Keyword.
 // TokenType == Operator: Expect 2 arguments to Apply
 // TokenType == SingleFunction: Expect 1 argument to Apply
-type KeywordData struct {
+type KeywordData[T any] struct {
 	Symbol    string
 	TokenType TokenType
-	Apply     func(...interface{}) interface{}
+	Apply     func(...T) T
 }
 
 // MathGroup is a data structure representing a mathematical system.
-type MathGroup struct {
-	keywordMap         map[Keyword]KeywordData
+type MathGroup[T any] struct {
+	keywordMap         map[Keyword]KeywordData[T]
 	keywordStringMap   map[string]Keyword
 	operatorPrecedence map[Keyword]int // For operators
-	GetValue           func(string) (interface{}, bool)
+	GetValue           func(string) (T, bool)
 }
 
 // TODO: Add verification for the three maps
 
 // NewMathGroup is a constructor for MathGroup
-func NewMathGroup(
-	keywordMap map[Keyword]KeywordData,
+func NewMathGroup[T any](
+	keywordMap map[Keyword]KeywordData[T],
 	keywordStringMap map[string]Keyword,
 	operatorPrecedence map[Keyword]int,
-	getValue func(string) (interface{}, bool),
-) *MathGroup {
-	return &MathGroup{
+	getValue func(string) (T, bool),
+) *MathGroup[T] {
+	return &MathGroup[T]{
 		keywordMap:         keywordMap,
 		keywordStringMap:   keywordStringMap,
 		operatorPrecedence: operatorPrecedence,
@@ -52,12 +52,12 @@ func NewMathGroup(
 }
 
 // HasHigherPriority returns true if the current operator has a higher priority.
-func (m *MathGroup) HasHigherPriority(current Keyword, ref Keyword, refType TokenType) bool {
+func (m *MathGroup[T]) HasHigherPriority(current Keyword, ref Keyword, refType TokenType) bool {
 	return refType != SingleFunction && m.operatorPrecedence[current] > m.operatorPrecedence[ref]
 }
 
 // KeywordToString converts a keyword into its corresponding string.
-func (m *MathGroup) KeywordToString(keyword Keyword) (s string) {
+func (m *MathGroup[T]) KeywordToString(keyword Keyword) (s string) {
 	if keywordData, exists := m.keywordMap[keyword]; exists {
 		return keywordData.Symbol
 	}
@@ -65,13 +65,13 @@ func (m *MathGroup) KeywordToString(keyword Keyword) (s string) {
 }
 
 // ApplyKeyword applies an operation or function on the given arguments.
-func (m *MathGroup) ApplyKeyword(keyword Keyword, args ...interface{}) interface{} {
+func (m *MathGroup[T]) ApplyKeyword(keyword Keyword, args ...T) T {
 	return m.keywordMap[keyword].Apply(args...)
 }
 
 // StringToTokenType returns the TokenType for a given string. Keyword is added if applicable.
 // Note: If nothing is matched, the default type returned is Variable.
-func (m *MathGroup) StringToTokenType(s string) (TokenType, Keyword) {
+func (m *MathGroup[T]) StringToTokenType(s string) (TokenType, Keyword) {
 
 	if s == "(" {
 		return LParen, 0
