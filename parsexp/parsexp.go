@@ -1,5 +1,5 @@
-// Package parse is used for parsing expressions.
-package parse
+// Package parsexp is used for parsing expressions.
+package parsexp
 
 import (
 	"errors"
@@ -13,7 +13,7 @@ import (
 type ParsedExpression []string
 
 // GetNextTokenString returns a string with the next token.
-func GetNextTokenString(expression string, index int, m *types.MathGroup) (tokenString string, nextIndex int) {
+func GetNextTokenString[T any](expression string, index int, m *types.MathGroup[T]) (tokenString string, nextIndex int) {
 	tokenString = ""
 	for ; index < len(expression); index++ {
 		c := string(expression[index])
@@ -41,7 +41,7 @@ func GetNextTokenString(expression string, index int, m *types.MathGroup) (token
 }
 
 // IsLocallyValid verifies whether each token is valid with reference to its neighbours.
-func IsLocallyValid(tokens []string, m *types.MathGroup) (bool, int) {
+func IsLocallyValid[T any](tokens []string, m *types.MathGroup[T]) (bool, int) {
 	currentCharLength := 0
 	if len(tokens) == 0 {
 		return true, currentCharLength
@@ -79,7 +79,7 @@ func IsLocallyValid(tokens []string, m *types.MathGroup) (bool, int) {
 }
 
 // Returns true if all tokens classified as a variable match the given variable namea variable match the given variable name.
-func areTokensValid(tokens []string, variableName string, m *types.MathGroup) (bool, string) {
+func areTokensValid[T any](tokens []string, variableName string, m *types.MathGroup[T]) (bool, string) {
 	for _, t := range tokens {
 		tokenType, _ := m.StringToTokenType(t)
 		if tokenType == types.Variable {
@@ -92,7 +92,7 @@ func areTokensValid(tokens []string, variableName string, m *types.MathGroup) (b
 }
 
 // Converts an expression into a list of strings, split by token.
-func parseExpression(expression string, m *types.MathGroup) (ParsedExpression, error) {
+func parseExpression[T any](expression string, m *types.MathGroup[T]) (ParsedExpression, error) {
 	tokens := ParsedExpression([]string{})
 	for i := 0; i < len(expression); {
 		tokenString, nextIndex := GetNextTokenString(expression, i, m)
@@ -104,7 +104,7 @@ func parseExpression(expression string, m *types.MathGroup) (ParsedExpression, e
 
 // ToPostfix converts a ParsedExpression from infix notation to postfix notation.
 // This change to postfix is useful for slightly optimizing speed in repeated calculations.
-func ToPostfix(tokens ParsedExpression, m *types.MathGroup) (ParsedExpression, error) {
+func ToPostfix[T any](tokens ParsedExpression, m *types.MathGroup[T]) (ParsedExpression, error) {
 	output := ParsedExpression([]string{})
 	operations := stack.New()
 
@@ -159,7 +159,7 @@ func ToPostfix(tokens ParsedExpression, m *types.MathGroup) (ParsedExpression, e
 
 // Parse takes in the expression given, and parses it into in postfix form.
 // This expression can be used in the evaluate module.
-func Parse(expression string, variableName string, m *types.MathGroup) (ParsedExpression, error) {
+func Parse[T any](expression string, variableName string, m *types.MathGroup[T]) (ParsedExpression, error) {
 	tokens, err := parseExpression(expression, m)
 	if err != nil {
 		return nil, err
@@ -168,7 +168,7 @@ func Parse(expression string, variableName string, m *types.MathGroup) (ParsedEx
 		return nil, errors.New("Token " + t + " is not recognized.")
 	}
 	if isValid, i := IsLocallyValid(tokens, m); !isValid {
-		return nil, errors.New("Expression is not valid\n" + expression + strings.Repeat(" ", i) + "^")
+		return nil, errors.New("Expression is not valid\n" + expression + "\n" + strings.Repeat(" ", i) + "^")
 	}
 	finalExpr, err := ToPostfix(tokens, m)
 	if err != nil {

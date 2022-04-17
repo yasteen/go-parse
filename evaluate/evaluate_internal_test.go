@@ -4,25 +4,25 @@ import (
 	"testing"
 
 	"github.com/yasteen/go-parse/evaluate"
-	"github.com/yasteen/go-parse/parse"
-	"github.com/yasteen/go-parse/types/mathgroups/real"
+	"github.com/yasteen/go-parse/mathgroups/real"
+	"github.com/yasteen/go-parse/parsexp"
 )
 
 func TestEvaluateOnce(t *testing.T) {
 	testEvaluateOnceHelper(
-		parse.ParsedExpression{"x"},
+		parsexp.ParsedExpression{"x"},
 		43.2,
 		43.2,
 		t,
 	)
 	testEvaluateOnceHelper(
-		parse.ParsedExpression{"x", "4", "-"},
+		parsexp.ParsedExpression{"x", "4", "-"},
 		43.2,
 		39.2,
 		t,
 	)
 	testEvaluateOnceHelper(
-		parse.ParsedExpression{"x", "x", "2", "-", "*", "3", "^"},
+		parsexp.ParsedExpression{"x", "x", "2", "-", "*", "3", "^"},
 		4,
 		512,
 		t,
@@ -30,7 +30,7 @@ func TestEvaluateOnce(t *testing.T) {
 
 }
 
-func testEvaluateOnceHelper(expression parse.ParsedExpression, variable float64, expected float64, t *testing.T) {
+func testEvaluateOnceHelper(expression parsexp.ParsedExpression, variable float64, expected float64, t *testing.T) {
 	value, err := evaluate.Once(expression, variable, real.Real)
 
 	if err != nil {

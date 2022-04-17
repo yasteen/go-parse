@@ -4,7 +4,8 @@ import (
 	"math"
 	"testing"
 
-	"github.com/yasteen/go-parse/types/mathgroups/complex"
+	"github.com/yasteen/go-parse/mathgroups/complex"
+	"github.com/yasteen/go-parse/run"
 )
 
 var MIN_THRESHOLD = math.Pow10(-10)
@@ -14,13 +15,14 @@ func equalEnough(a float64, b float64) bool {
 }
 
 func testMapValuesHelper(expression string, input complex.Number, expected complex.Number, t *testing.T) {
-	c, err := complex.MapValues(expression, *complex.NewComplexInterval(input, 1, input), "x")
+	runnableComplex := run.GetRunnableMathGroup(complex.Complex)
+	c, err := runnableComplex.MapValues(expression, *complex.NewComplexInterval(input, complex.Number{1, 0}, input), "x")
 
 	if err != nil {
 		t.Error(err)
 	}
 
-	if !equalEnough(c[0].(complex.Number).Re, expected.Re) || !equalEnough(c[0].(complex.Number).Im, expected.Im) {
+	if !equalEnough(c[0].Re, expected.Re) || !equalEnough(c[0].Im, expected.Im) {
 		t.Error("Failed addition on expression", expression, "- Expected:", expected, "Got:", c[0])
 	}
 }

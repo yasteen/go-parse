@@ -7,7 +7,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/yasteen/go-parse/types/mathgroups/real"
+	"github.com/yasteen/go-parse/mathgroups/real"
+	"github.com/yasteen/go-parse/run"
 )
 
 func main() {
@@ -30,5 +31,6 @@ func main() {
 		fmt.Println("Bad values :(")
 	}
 
-	fmt.Println(real.MapValues(expression, *real.NewRealInterval(val, 2, val+1), "x"))
+	runnableReal := run.GetRunnableMathGroup(real.Real)
+	fmt.Println(runnableReal.MapValues(expression, *real.NewInterval(val, 2, val+1), "x"))
 }
