@@ -18,10 +18,4 @@ jobs:
           go-version: 1.17
 
       - name: Test Parse
-        run: go test -v ./parse
-
-      - name: Test Evaluate
-        run: go test -v ./evaluate
-
-      - name: Test Complex
-        run: go test -v ./types/mathgroups/complex
+        run: ./.dev/run-tests

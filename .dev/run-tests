@@ -1,5 +1,10 @@
 set -e
 
+echo "Test Parse..."
 go test -v ./parsexp
+echo "Test Evaluate..."
 go test -v ./evaluate
+echo "Test Complex Numbers..."
 go test -v ./mathgroups/complex
+
+echo "All tests passed!"
