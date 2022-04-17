@@ -1,5 +1,5 @@
 set -e
 
-go test -v ./parse
+go test -v ./parsexp
 go test -v ./evaluate
 go test -v ./mathgroups/complex
